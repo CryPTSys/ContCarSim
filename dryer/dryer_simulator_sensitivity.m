@@ -118,9 +118,9 @@ for i = 1:length(fields(sens))-2
         flag = 0;
         while flag == 0  
             tf=tf+step_mom;
-            p.Pprofile=fsolve(@MomBal_vectorized,p.Pprofile,options_P,p,x0);
+            p.Pprofile=fsolve(@momentum_balance,p.Pprofile,options_P,p,x0);
         %     p.Pprofile=repmat(1e6,[1,p.n_nodes]);
-            [t_new,x_new]=ode15s(@model_dryer_FVM_noP_vectorized,t0:5:tf,x0,options,p);
+            [t_new,x_new]=ode15s(@model_dryer,t0:5:tf,x0,options,p);
             t0=t_new(end);
             x0=x_new(end,:);
             x=[x;[x_new(1:end-1,:) repmat(p.Pprofile,[size(t_new,1)-1,1])]];
