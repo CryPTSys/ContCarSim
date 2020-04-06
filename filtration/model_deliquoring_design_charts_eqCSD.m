@@ -1,10 +1,12 @@
-function d = model_deliquoring_design_charts(filt_output,p)
+function d = model_deliquoring_design_charts_eqCSD(cryst_output,filt_output,p)
 
     %% Deliquoring model calculation - solution obtained through design charts
     t_deliq=0:.1:p.t_deliq_final;
     k_av= 1/(filt_output.alpha*p.rho_sol*(1-filt_output.E));      % cake permeability [?]
     L_cake=filt_output.H_cake(end);                   % cake height at the end of filtration [m]
-    N_cap=(filt_output.E^3*(filt_output.m1/filt_output.m0)^2*(p.rho_liq*9.81.*L_cake+p.dP))/((1-filt_output.E)^2*L_cake.*p.surf_t);
+    %N_cap=(filt_output.E^3*(filt_output.m1/filt_output.m0)^2*(p.rho_liq*9.81.*L_cake+p.dP))/((1-filt_output.E)^2*L_cake.*p.surf_t);
+    N_cap_CSD=@(x) (filt_output.E^3*(x).^2*(p.rho_liq*9.81.*L_cake+p.dP))/((1-filt_output.E)^2*L_cake.*p.surf_t);
+    N_cap=trapz(cryst_output.x,N_cap_CSD(cryst_output.x).*cryst_output.CSD'/filt_output.m0);
     S_inf= 0.155.*(1+0.031.*N_cap.^(-0.49));   % irreducible cake saturation (minimum saturation that can be achieved by displacement of the interstitial liquid by the applied vacuum
     ThetaP=(t_deliq.*k_av.*p.dP)./(filt_output.E.*p.visc.*(L_cake.^2).*(1-S_inf)); % Dimensionless deliquoring time [-]
     n_switch=min(max(ThetaP-1.915,0)*10,1);           

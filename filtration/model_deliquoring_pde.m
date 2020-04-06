@@ -1,6 +1,6 @@
 function d = model_deliquoring_design_charts(filt_output,p)
 
-    %% Deliquoring model calculation - solution obtained through design charts
+    %% Deliquoring model
     t_deliq=0:.1:p.t_deliq_final;
     k_av= 1/(filt_output.alpha*p.rho_sol*(1-filt_output.E));      % cake permeability [?]
     L_cake=filt_output.H_cake(end);                   % cake height at the end of filtration [m]
