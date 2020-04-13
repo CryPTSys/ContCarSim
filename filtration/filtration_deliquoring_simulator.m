@@ -16,7 +16,7 @@ cryst_output.flowrate_MSMPR=1.7e-7; % m3/s
 clear x, clear CSD
 
 %% Inputs
-p.t_rot=200; % s
+p.t_rot=120; % s
 p.dP=5e4; % Pa
 t=0:0.01:p.t_rot;
 % CycleNo=1;%u(Nx+5);
@@ -28,9 +28,21 @@ p.Filter_d = 0.01;               % p.Filter_diameter [m]
 p.Rm = 2.22e9;                   % Filter medium resistance [??m^-1];
 p.rho_sol = 1400;                % Crystal density [kg/m^3]
 p.rho_liq = 842;                 % Liquid density [kg/m^3]
-p.visc = 1.4E-03;                % Fluid p.viscosity [Pas]
-p.kappa = 1;                     % Dynamic shape factor, sphere= 1
-p.surf_t = 22.39e-3;             % Surface tension [N/m]   
+p.visc = 1.4E-03;                % Fluid viscosity [Pa s]
+p.viscG = 1.8e-5;                % Air viscosity at room temperature and 1 atm [Pa s]
+p.surf_t = 22.39e-3;             % Surface tension [N/m]  
+p.lambda = 5;                    % Pore size index for deliquoring [-]
+p.grid_deliq = 0.1e-4;          % Grid spacing for deliquoring [m]
+p.Di = 1.28e-9;                  % diffusivity of ethanol in water [m2/s]
+
+%% Calculation of cake properties 
+p.A = p.Filter_d.^2.*pi./4;                        % Filtration area [m^2]
+p.E=Porosity_function(p.Filter_d,cryst_output.CSD,cryst_output.x);           % Ouchiyama model
+p.m0=trapz(cryst_output.x,cryst_output.CSD); 
+p.m1=trapz(cryst_output.x,cryst_output.CSD.*cryst_output.x'); 
+alpha_CSD=@(dp) 180*(1-p.E)./(p.E^3*dp.^2*p.rho_sol);
+p.alpha=trapz(cryst_output.x,alpha_CSD(cryst_output.x).*cryst_output.CSD'/p.m0);
+%p.Ncap=f(CSD)
 
 %% Simulation section
 
@@ -40,33 +52,38 @@ filt_output=model_filtration(t,cryst_output,p);
 % Deliquoring
 % Select deliquoring length: up to t_rot or further?
 p.t_deliq_final=p.t_rot-filt_output.t_filt_total; 
-% % Solve with design charts and eq. conc. solvent depending on Dmean
-deliq_output=model_deliquoring_design_charts(filt_output,p);
-% Solve with design charts and eq. conc. solvent depending on CSD
-deliq_output2=model_deliquoring_design_charts_eqCSD(cryst_output,filt_output,p);
-% Solve integrating the PDEs
+% % Solve with design charts  eq. conc. of solvent and treshold pressure depend on Dmean
+% deliq_output=model_deliquoring_design_charts(filt_output,p);
+% Solve with design charts - eq. conc. of solvent and treshold pressure depend on CSD
+deliq_output_charts=model_deliquoring_design_charts_eqCSD(cryst_output,filt_output,p);
+% Solve integrating the PDEs - eq. conc. of solvent and treshold pressure depend on CSD
+deliq_output_pde=model_deliquoring_pde_adim(cryst_output,filt_output,p);
+
+% Washing
+washing_output=model_washing_SaturatedCakeApprox(filt_output,deliq_output_pde,p);
 
 %% Graphical output
-
-t_deliq=deliq_output.t_deliq;
-if length(t_deliq)<1
-    t_deliq=0;
-    V_deliq=0;
-    solvent_content_vol_deliq=filt_output.solvent_content_vol_filt(end);
-    solvent_content_vol_eq=deliq_output.solvent_content_vol_eq;
-else
-    V_deliq=deliq_output.V_deliq;
-    solvent_content_vol_deliq=deliq_output.solvent_content_vol_deliq;
-    solvent_content_vol_eq=deliq_output.solvent_content_vol_eq;
-    S=deliq_output.S;
-    S_inf=deliq_output.S_inf;
-end
 CSD=cryst_output.CSD;
 x=cryst_output.x;
 t_filt=filt_output.t_filt;
 V_filt=filt_output.V_filt;
 solvent_content_vol_filt=filt_output.solvent_content_vol_filt;
 t_filt_total=filt_output.t_filt_total;
+
+t_deliq=deliq_output_charts.t_deliq;
+if length(t_deliq)<1
+    t_deliq=0;
+    V_deliq=0;
+    solvent_content_vol_deliq_charts=filt_output.solvent_content_vol_filt(end);
+    solvent_content_vol_eq=deliq_output_charts.solvent_content_vol_eq;
+else
+    V_deliq=deliq_output_charts.V_deliq;
+    solvent_content_vol_deliq_charts=deliq_output_charts.solvent_content_vol_deliq;
+    solvent_content_vol_deliq_pde=deliq_output_pde.solvent_content_vol_deliq;
+    solvent_content_vol_eq=deliq_output_charts.solvent_content_vol_eq;
+    S=deliq_output_charts.S;
+    S_inf=deliq_output_charts.S_inf;
+end
 
 % % Solvent content during deliquoring
 % plot(t_deliq,solvent_content_vol_deliq,[t_deliq(1) t_deliq(end)],[solvent_content_vol_eq solvent_content_vol_eq],'linewidth',1.5)
@@ -84,15 +101,33 @@ t_filt_total=filt_output.t_filt_total;
 
 % Plot solvent content profile during filtration and deliquoring
 figure
-plot([t_filt t_deliq+t_filt(end)],[solvent_content_vol_filt solvent_content_vol_deliq],...
-    [0 t_filt(end)+t_deliq(end)],[solvent_content_vol_eq solvent_content_vol_eq],'linewidth',1.5);
+plot([t_filt t_deliq+t_filt(end)],[solvent_content_vol_filt solvent_content_vol_deliq_charts],...
+    [t_filt t_deliq+t_filt(end)],[solvent_content_vol_filt solvent_content_vol_deliq_pde],...
+    [0 t_filt(end)+t_deliq(end)],[solvent_content_vol_eq solvent_content_vol_eq])
+
+xlabel('Time [s]')
+ylabel('Cake mean vol. solvent content [-]')
+set(gca,'fontsize',16,'linewidth',1.3,'xtick',0:40:240)%'xlim',[t_deliq(1) 60],'xtick',0:10:60)
+axis([0 t_filt(end)+t_deliq(end) 0 solvent_content_vol_filt(end)*1.2] )
 lim=get(gca);
 lim=lim.YLim;
-hold on,plot([t_filt_total t_filt_total],[0 lim(2)],'r','linewidth',1)
-xlabel('Time [s]')
-ylabel('Cake vol. solvent content [-]')
-set(gca,'fontsize',16,'linewidth',1.3)%,'xlim',[t_deliq(1) 60],'xtick',0:10:60)
-legend('Solvent content','Equilibrium moisture content')
+hold on,plot([t_filt_total t_filt_total],[0 lim(2)],'r','linewidth',.5)
+legend('Solvent content - design charts','Solvent content - PDE','Equilibrium moisture content','Beginning deliquoring step')
+
+
+figure
+plot(deliq_output_pde.nodes_deliq,deliq_output_pde.S_final)
+xlabel('Cake axial coordinate')
+ylabel('Cake vol. solvent content profile [-]')
+set(gca,'fontsize',16,'linewidth',1.3)
+
+% Plot solvent concentration after washing
+figure
+plot(deliq_output_pde.nodes_deliq,washing_output.xv_mother_liquor)
+xlabel('Cake axial coordinate')
+ylabel('Cake vol. solvent content profile [-]')
+set(gca,'fontsize',16,'linewidth',1.3)
+
 % 
 % % Plots saturation profile
 % figure
@@ -112,8 +147,8 @@ legend('Solvent content','Equilibrium moisture content')
 % set(gca,'fontsize',16,'linewidth',1.3,'ylim',[0 6e-5]) %,'xtick',0:10:60)
 
 %% Warning
-if length(deliq_output.ThetaP)>1
-    if deliq_output.ThetaP(end)>204
-        disp('Attention! The solution has been obtained through extrapolation')
+if length(deliq_output_charts.ThetaP)>1
+    if deliq_output_charts.ThetaP(end)>204
+        disp('Attention! The solution obtained through design charts is extrapolated')
     end
 end
