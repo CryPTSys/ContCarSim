@@ -1,16 +1,10 @@
-function d = model_deliquoring_pde_adim(cryst_output,filt_output,p)
+function d = model_deliquoring_pde_adim(p)
 
     %% Deliquoring model calculations - solution obtained solving the PDEs model
     t_deliq=0:.1:p.t_deliq_final;
-    p.L_cake=filt_output.H_cake(end);           % cake height at the end of filtration [m]
-    p.k= 1/(p.alpha*p.rho_sol*(1-p.E));      % cake permeability [?]
-    p.N_cap_CSD=@(x) (p.E^3*(x).^2*(p.rho_liq*9.81.*p.L_cake+p.dP))/((1-p.E)^2*p.L_cake.*p.surf_t);
-    p.S_inf=trapz(cryst_output.x,0.155*(1+0.031*p.N_cap_CSD(cryst_output.x).^(-0.49)).*cryst_output.CSD'/p.m0);    % irreducible cake saturation (minimum saturation that can be achieved by displacement of the interstitial liquid by the applied vacuum    
-    pb_CSD=@(x) 4.6*(1-p.E)*p.surf_t./(p.E*x);
-    p.Pb=trapz(cryst_output.x,pb_CSD(cryst_output.x).*cryst_output.CSD'/p.m0);
     
     % Grid discretization and initial conditions
-    p.number_nodes=round(p.L_cake/p.grid_deliq);
+    p.number_nodes=p.number_nodes_deliq;%round(p.L_cake/p.grid_deliq);
     p.nodes_list=1:p.number_nodes;
     p.step_grid_deliq=p.L_cake/p.number_nodes;
     p.nodes_deliq=linspace(p.step_grid_deliq/2,p.L_cake-p.step_grid_deliq/2,p.number_nodes);
@@ -28,25 +22,20 @@ function d = model_deliquoring_pde_adim(cryst_output,filt_output,p)
     % sparsity matrix - consistent with the FVM upwind differencing scheme
 %     SparsMatrix=tril(ones(p.number_nodes),1); % lower diagonal 
     options = [];%odeset('JPattern',SparsMatrix);
-    [~,S_t]=ode15s(@deliquoring_pde,0:theta_step:theta_fin,SR0,options,p);
+    [~,S_t]=ode45(@deliquoring_pde,0:theta_step:theta_fin,SR0,options,p);
     
     S_t=p.S_inf+S_t*(1-p.S_inf);
     S=trapz(p.nodes_deliq,S_t'/(p.L_cake-p.step_grid_deliq)); % average saturation
-    V_liq_pores_deliq=S*filt_output.V_liquid_pores_filtration; % Volume of liquid in the pores during deliq as function of time
-    V_deliq=(1-S)*filt_output.V_liquid_pores_filtration;   % Volume of filtrate during deliq as function of time
-    V_liq_pores_eq=p.S_inf*filt_output.V_liquid_pores_filtration;  % Volume of liquid in the pores at eq   
-    Volume_cake=filt_output.V_liquid_pores_filtration+filt_output.m_dry_cake(end)/p.rho_sol;
-    solvent_content_vol_deliq=V_liq_pores_deliq/Volume_cake; % Volumetric fraction of solvent content during deliq
-    solvent_content_vol_eq=V_liq_pores_eq/Volume_cake; % Volumetric fraction of solvent content at mech eq
+    solvent_content_vol_deliq=S*p.E;%V_liq_pores_deliq/Volume_cake; % Volumetric fraction of solvent content during deliq
+    solvent_content_vol_eq=p.S_inf*p.E;%V_liq_pores_eq/Volume_cake; % Volumetric fraction of solvent content at mech eq
     
     %% Collect outputs in the object d
     d.t_deliq=t_deliq;
-    d.V_deliq=V_deliq;
     d.solvent_content_vol_eq=solvent_content_vol_eq;
     d.solvent_content_vol_deliq=solvent_content_vol_deliq;
     d.S=S;
     d.S_inf=p.S_inf;
-    d.S_final=S_t(end,:)*p.E;
+    d.S_final=S_t(end,:);
     d.nodes_deliq=p.nodes_deliq;
 end
 
@@ -60,15 +49,15 @@ function dSdtheta=deliquoring_pde(~,x,p)
     ulin=0; 
     
     % Neglect transient
-%     Pl=(p.Pg'-p.Pb.*SR.^(-1/p.lambda))/p.Pb/p.scaling;
+    Pl=(p.Pg'-p.Pb.*SR.^(-1/p.lambda))/p.Pb/p.scaling;
     
     % Approximate transient before air breakthrough
-    if SR(end)<1-1e-6
-        Pl=(p.Pg'-p.Pb.*SR.^(-1/p.lambda))/p.Pb/p.scaling;
-    else
-        Pl=linspace(p.Pg(1)-p.Pb.*SR(1).^(-1/p.lambda),p.Pg(end),p.number_nodes)/p.Pb/p.scaling;
-        Pl=Pl';
-    end
+%     if SR(end)<1-1e-6
+%         Pl=(p.Pg'-p.Pb.*SR.^(-1/p.lambda))/p.Pb/p.scaling;
+%     else
+%         Pl=linspace(p.Pg(1)-p.Pb.*SR(1).^(-1/p.lambda),p.Pg(end),p.number_nodes)/p.Pb/p.scaling;
+%         Pl=Pl';
+%     end
 
     Pl=Pl(:);
     kl=SR.^((2+3*p.lambda)/p.lambda);
@@ -80,7 +69,7 @@ function dSdtheta=deliquoring_pde(~,x,p)
     dPldz(2:p.number_nodes)=(fluxes_Pl(2:p.number_nodes)-fluxes_Pl(1:p.number_nodes-1))/p.step_grid_deliq;
     dPldz(p.number_nodes)=(fluxes_Pl(p.number_nodes)-fluxes_Pl(p.number_nodes-1))*2/p.step_grid_deliq;
     
-    % FVM - doesn't work, to be refined
+    % FVM - doesn't work, to be fixed
 %     flux_Pl_in=Plin;
 %     fluxes_Pl=fluxes_FVM_upwind(Pl,p);
 %     fluxes_Pl(1)=0.5*(Pl(1)+Plin);
@@ -97,7 +86,7 @@ function dSdtheta=deliquoring_pde(~,x,p)
     duldz(2:p.number_nodes)=(fluxes_ul(2:p.number_nodes)-fluxes_ul(1:p.number_nodes-1))/p.step_grid_deliq;
     duldz(p.number_nodes)=(fluxes_ul(p.number_nodes)-fluxes_ul(p.number_nodes-1))*2/p.step_grid_deliq;
 
-    % FVM - doesn't work
+    % FVM - doesn't work, to be fixed
 %     flux_ul_in=ulin;
 %     fluxes_ul=fluxes_FVM_upwind(ul,p);
 %     fluxes_ul(1)=ul(1);
