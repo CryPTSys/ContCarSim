@@ -1,42 +1,65 @@
-function d = model_deliquoring_pde_adim(p)
-
-    %% Deliquoring model calculations - solution obtained solving the PDEs model
-    t_deliq=0:.1:p.t_deliq_final;
+function deliq_output = model_deliquoring_pde_adim(input,duration_deliq,p)
+    % Required inputs:
+    % input.final_liq_mass_fr_vect = vector liquid phase components mass fractions
+    %    [number of components x number of nodes] or [number of components x 1] if uniform
+    % input.S_final = vector of initial liquid phase saturation [1 x nodes previous model]
+    % p = parameters object
+    % Optional inputs:
+    % input.nodes = vector of nodes previous model [1 x nodes previous model]
+    %   necessary if input.final_liq_mass_fr_vect is not uniform
     
-    % Grid discretization and initial conditions
-    p.number_nodes=p.number_nodes_deliq;%round(p.L_cake/p.grid_deliq);
+    %% Deliquoring model calculations - solution obtained solving the PDEs model
+    t_deliq=0:p.time_step_deliq:duration_deliq;
+    
+    % Grid discretization
+    p.number_nodes=p.number_nodes_deliq;% local variable - round(p.L_cake/p.grid_deliq);
     p.nodes_list=1:p.number_nodes;
     p.step_grid_deliq=p.L_cake/p.number_nodes;
     p.nodes_deliq=linspace(p.step_grid_deliq/2,p.L_cake-p.step_grid_deliq/2,p.number_nodes);
-   
+    
+    % Initial condition
+    initial_liq_mass_fr_vect=input.final_liq_mass_fr_vect;
+    if size(initial_liq_mass_fr_vect,2)>1 && (initial_liq_mass_fr_vect(1,1)-initial_liq_mass_fr_vect(1,end))/initial_liq_mass_fr_vect(1)>0.01      
+        for i = 1 : size(initial_liq_mass_fr_vect,1)
+            initial_liq_mass_fr_vect_rescaled(i,:) = interp1(input.nodes,initial_liq_mass_fr_vect(i,:),p.nodes_deliq);
+        end
+    else
+        initial_liq_mass_fr_vect_rescaled = repmat(initial_liq_mass_fr_vect(:,1),[1,p.number_nodes]);
+    end
+    S0=input.S_final;
+    S0 = interp1(input.nodes,S0,p.nodes_deliq);
+     
+    % Calculations
+    visc_liq=p.visc_liquid_phase_from_mass_fr(mean(initial_liq_mass_fr_vect_rescaled,2));
     dPgdz=p.dP/p.L_cake;
     p.Pgin=101325;
     p.Pgout=101325-p.dP;   
     p.Pg=linspace(p.Pgin-dPgdz*p.step_grid_deliq/2,...
         p.Pgout+dPgdz*p.step_grid_deliq/2,p.number_nodes);
-    SR0=ones(1,p.number_nodes); 
-    p.scaling=1/(p.step_grid_deliq^2); % an additional scaling factor for pressures
-    theta_step=p.k*p.Pb*p.scaling*0.1/(p.visc*p.L_cake^2*p.E*(1-p.S_inf));
-    theta_fin=p.k*p.Pb*p.scaling*p.t_deliq_final/(p.visc*p.L_cake^2*p.E*(1-p.S_inf));
+    SR0=(S0-p.S_inf)/(1-p.S_inf); 
+    p.scaling=1/(p.step_grid_deliq^3); % an additional scaling factor for pressures
+    theta_step=p.k*p.Pb*p.scaling*p.time_step_deliq/(visc_liq*p.L_cake^2*p.E*(1-p.S_inf));
+    theta_fin=p.k*p.Pb*p.scaling*duration_deliq/(visc_liq*p.L_cake^2*p.E*(1-p.S_inf));
     
-    % sparsity matrix - consistent with the FVM upwind differencing scheme
+    % Sparsity matrix - consistent with the FVM upwind differencing scheme
 %     SparsMatrix=tril(ones(p.number_nodes),1); % lower diagonal 
     options = [];%odeset('JPattern',SparsMatrix);
+    
     [~,S_t]=ode45(@deliquoring_pde,0:theta_step:theta_fin,SR0,options,p);
     
     S_t=p.S_inf+S_t*(1-p.S_inf);
     S=trapz(p.nodes_deliq,S_t'/(p.L_cake-p.step_grid_deliq)); % average saturation
-    solvent_content_vol_deliq=S*p.E;%V_liq_pores_deliq/Volume_cake; % Volumetric fraction of solvent content during deliq
-    solvent_content_vol_eq=p.S_inf*p.E;%V_liq_pores_eq/Volume_cake; % Volumetric fraction of solvent content at mech eq
+    vol_fr_liq_phase=S*p.E;%V_liq_pores_deliq/Volume_cake; % Volumetric fraction of solvent content during deliq
+    eq_vol_fr_liq_phase=p.S_inf*p.E;%V_liq_pores_eq/Volume_cake; % Volumetric fraction of solvent content at mech eq
     
-    %% Collect outputs in the object d
-    d.t_deliq=t_deliq;
-    d.solvent_content_vol_eq=solvent_content_vol_eq;
-    d.solvent_content_vol_deliq=solvent_content_vol_deliq;
-    d.S=S;
-    d.S_inf=p.S_inf;
-    d.S_final=S_t(end,:);
-    d.nodes_deliq=p.nodes_deliq;
+    %% Collect outputs in the object deliq_output
+    deliq_output.t_deliq=t_deliq;
+    deliq_output.eq_vol_fr_liq_phase=eq_vol_fr_liq_phase;
+    deliq_output.vol_fr_liq_phase=vol_fr_liq_phase;
+    deliq_output.S_avg=S;
+    deliq_output.S_final=S_t(end,:);
+    deliq_output.nodes=p.nodes_deliq;
+    deliq_output.final_liq_mass_fr_vect=initial_liq_mass_fr_vect_rescaled;
 end
 
 % HRFVM
