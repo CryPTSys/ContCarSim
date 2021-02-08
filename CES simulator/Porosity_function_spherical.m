@@ -1,4 +1,4 @@
-function [Porosity]=Porosity_function(Filter_diameter,CSD,x)
+function [Porosity]=Porosity_function_spherical(Filter_diameter,CSD,x)
     % F. Destro, v1 March 27, 2020
     % Porosity calculation implemented based on Ouchiyama, N., Tanaka, T., 1986.Porosity estimation from particle size distribution. Industrial & Engineering Chemistry Fundamentals 25, 125-129.
 

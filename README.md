@@ -1,2 +1,2 @@
-# carousel_models
+# carousel_simulator
  
