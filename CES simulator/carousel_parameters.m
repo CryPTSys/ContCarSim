@@ -1,6 +1,6 @@
 function p = carousel_parameters(cryst_output,p)
     %% System components setup
-    % in this version we neglect the effect on the gas phase cp of the vaporized species
+
     names_components=[{'IPA'},{'EtOH'},{'impurity'}]; % mother liquor, wash solvent, impurities in mother liquor
     p.number_components=length(names_components);
     p.number_volatile_components=2;
@@ -15,23 +15,16 @@ function p = carousel_parameters(cryst_output,p)
     % Drying
 %     p.Di_gas = [0.4e-4 0.4e-4 0]'; % diffusivity of species into air [m2/s]
     p.cp_liq_components = [2667 2570 2667]';   % liquid specific heat [J/(kg K)]
-    % we assume cp_gas = cp_N2; p.cp_gas_components = [33.46e-3;0.688e-5;0.7604e-8;-3.593e-12]./p.MW_components*1e3; % solvent (steam) specific heat in the gas phase [J/(kg K)] 
+    % we assume cp_gas = cp_air; p.cp_gas_components = [33.46e-3;0.688e-5;0.7604e-8;-3.593e-12]./p.MW_components*1e3; % solvent (steam) specific heat in the gas phase [J/(kg K)] 
     p.vl_crit = [0.1 0.1 0 ]';             %@ Drying - critical impurity content [m3_i/m3]
     p.vl_eq = [1e-12 1e-12 1]';                  %@ Drying - equilibrium impurity content [m3_l/m3] 
     p.latent_heat = [664*1e3 846*1e3 0]'; % solvent latent heat of vaporization J/kg] - model it
     
-    p.A1_eth=74.475;
-    p.B1_eth=-7164.3;
-    p.C1_eth=-7.327;
-    p.D1_eth=3.1340e-6;
-    p.E1_eth=2;
-    p.A1_ipa=76.964;
-    p.B1_ipa=-7623.8;
-    p.C1_ipa=-7.4924;
-    p.D1_ipa=5.9436e-18;
-    p.E1_ipa=6;
-    p.coeff_antoine= [p.A1_ipa,p.B1_ipa,p.C1_ipa, p.D1_ipa, p.E1_ipa,
-        p.A1_eth,p.B1_eth,p.C1_eth, p.D1_eth, p.E1_eth     ];
+    % Antoine equation coefficients (Perry's) - the eq is coded inside the drying model
+    % Psat = exp(A1+A2/T+A3*log(T)+A4*T^A5;   
+    p.coeff_antoine= [76.964, -7623.8, -7.4924, 5.9436e-18, 6,
+        74.475, -7164.3,-7.327, 3.1340e-6, 2,
+        0, 0, 0, 0, 0];
     
 
  %% Filtration/deliquoring/washing parameters
@@ -54,16 +47,16 @@ function p = carousel_parameters(cryst_output,p)
     p.alpha=sum(p.alpha_CSD(cryst_output.x).*cryst_output.CSD);
 
     p.k=1/(p.alpha*p.rho_sol*(1-p.E));      % cake permeability [?]
-    p.a_V=6*p.m2/p.m3;
+    p.a_V=6*p.m2/p.m3; % 109000; %
     p.x=cryst_output.x;
     p.CSD=cryst_output.CSD;
     
     %% Drying
     % Drying parameters
     % Gas phase parameters
-    p.k_N2 = 0.028; % air conductivity [W/(m K)] IT'S AIR EVEN IF NAME IS N2!
-    p.MW_N2 = 18*1e-3; % air molecular weight [kg/mol] IT'S AIR EVEN IF NAME IS N2!
-    p.cp_N2 = [29e-3;0.2199e-5;0.5723e-8;-2.871e-12]/p.MW_N2*1e3; % nitrogen specific heat [J/(kg K)] 
+    p.k_air = 0.028; % air conductivity [W/(m K)] IT'S AIR EVEN IF NAME IS air!
+    p.MW_air = 18*1e-3; % air molecular weight [kg/mol] IT'S AIR EVEN IF NAME IS air!
+    p.cp_air = [29e-3;0.2199e-5;0.5723e-8;-2.871e-12]/p.MW_air*1e3; % nitrogen specific heat [J/(kg K)] 
 %     p.h_T=1000; % not needed anymore since when we use only one EB
     p.h_M = [2.25*1e-5/p.a_V 2.25*1e-5/p.a_V 0]'*1; %             %@ Drying - mass transfer coefficient
     

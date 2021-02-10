@@ -1,7 +1,10 @@
-classdef carousel_parameters_class
+classdef carousel_parameters_class_control
     properties
-        Di_gas
-        V_slurry
+        names_components
+        Rm_vector
+        time_vector
+        control_time
+        error_t_rot
         V_filt_step
         drying_time_step
         number_components
@@ -49,6 +52,8 @@ classdef carousel_parameters_class
         t_rot
         W
         dP
+        filtration_sampling_time
+        drying_sampling_time
         dP_drying
         Tinlet_drying
         L_cake
@@ -68,10 +73,10 @@ classdef carousel_parameters_class
         rho_l
         repLatHeat
         repRhoLComp
+        h_T
         epsL_non_vol
         step_grid_deliq
         nodes_deliq
-        h_T
         Pgin
         Pgout
         Pg
@@ -82,39 +87,41 @@ classdef carousel_parameters_class
         visc_liq
         x
         CSD
+        wash_solvent_mass_fr
+        k_ads
     end 
     methods 
-        function output=visc_liq_components(obj,T) 
+        function output=visc_liq_components(obj,T)  % Liquid viscosity [Pa s] - T in [K]
             output=10.^(obj.visc_liq_coeff(:,1)+obj.visc_liq_coeff(:,2)/T+...
-                obj.visc_liq_coeff(:,3)*T+obj.visc_liq_coeff(:,4)*T^2)*1e-3;  % Liquid viscosity [Pa s] - T in [K]
+                obj.visc_liq_coeff(:,3)*T+obj.visc_liq_coeff(:,4)*T^2)*1e-3;  
         end
-        function output = mass_fr_from_conc(obj,c)
+        function output = mass_fr_from_conc(obj,c) % converts concentrations into mass fractions - liquid phase
             output=c./sum(c); % sum(c) is the density of the liquid phase
         end
-        function output = mol_fr_from_mass_fr(obj,w)
+        function output = mol_fr_from_mass_fr(obj,w) % converts mass fractions into mole fractions - liquid phase
             output=w./obj.MW_components./sum(w./obj.MW_components);
         end
-        function output = rho_liquid_phase_from_mass_fr(obj,w)
+        function output = rho_liquid_phase_from_mass_fr(obj,w) % calculates density of liquid phase from mass fractions
             output=1./sum(w./obj.rho_liq_components); 
         end
-        function output = visc_liquid_phase_from_mass_fr(obj,T,w)
+        function output = visc_liquid_phase_from_mass_fr(obj,T,w) % calculates viscosity of liquid phase from mass fractions
             output=exp(sum(obj.mol_fr_from_mass_fr(w).*log(visc_liq_components(obj,T))));
         end
-        function output = cp_liquid_phase_from_mass_fr(obj,w)
+        function output = cp_liquid_phase_from_mass_fr(obj,w) % calculates specific heat of liquid phase from mass fractions
             output=sum(w.*obj.cp_liq_components);
         end
-        function output = conc_from_mass_fr(obj,w)
+        function output = conc_from_mass_fr(obj,w) % calculates concentrations from mass fractions - liquid phase
             output= w.*obj.rho_liquid_phase_from_mass_fr(w);
         end
-        
-        function output=alpha_CSD(obj,dp)
-            output=180*(1-obj.E)./(obj.E^3*dp.^2*obj.rho_sol);
+              
+        function output=alpha_CSD(obj,dp,E) % calculates specific cake resistance of cake with particles of size dp and porosity E - Kozeny–Carman eq
+            output=180*(1-E)./(E^3*dp.^2*obj.rho_sol);
         end
-        function output=N_cap_CSD(obj,x,rho_liq)
-            output=(obj.E^3*(x).^2*(rho_liq*9.81.*obj.L_cake+obj.dP))/((1-obj.E)^2*obj.L_cake.*obj.surf_t);
+        function output=N_cap_CSD(obj,x,rho_liq,E,dP,L_cake) % capillary number - Tarleton and Wakeman, 2007
+            output=(E^3*(x).^2*(rho_liq*9.81.*L_cake+dP))/((1-E)^2*L_cake.*obj.surf_t);
         end
-        function output=pb_CSD(obj,x)
-            output=4.6*(1-obj.E)*obj.surf_t./(obj.E*x);      
+        function output=pb_CSD(obj,x,E) % threshold pressure - Tarleton and Wakeman, 2007
+            output=4.6*(1-E)*obj.surf_t./(E*x);
         end
     end
 end

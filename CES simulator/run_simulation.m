@@ -18,7 +18,7 @@ function output=run_simulation()
     % load CSD
     load CSD
     CSD=CSD/100;
-    CSD=CSD/sum(CSD);
+%     CSD=CSD/sum(CSD);
     cryst_output.x=x;
     cryst_output.CSD=CSD;
  
@@ -36,6 +36,10 @@ function output=run_simulation()
     
     % calculate remaining parameters
     p = carousel_parameters(cryst_output,p);   
+    CSD=CSD/100;
+    CSD=CSD/sum(CSD);
+    cryst_output.x=x;
+    cryst_output.CSD=CSD;
     
     tic
     %% Simulation  

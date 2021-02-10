@@ -60,8 +60,8 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                     int i, j;
 
                     (void)t;
-
-                    // Initialization
+     
+                    // drying effectiveness parameters regressed from TGA experiments on PCM (See CES paper)
                     a1=-3.56837E7;
                     a2=1.7128E6;
                     a3=-3.0190E4;
@@ -69,9 +69,11 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                     a5=0.0086;
                     b1=3.3735;
                     b2=0.6299;
+                    
+                    // Initialization
                     for (j=0; j<number_nodes; j++) {
                         Tg[j]=x[j];
-                        Ts[j]=Tg[j]; //x[j+number_nodes];
+                        Ts[j]=Tg[j]; 
                         epsL_volatile[j]=0;
                         MWgas[j]=0;
                         wg_N2[j]=1;
@@ -79,19 +81,14 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                             for(i=0;i<number_volatile_components;i++) {
                                   wig[j+i*number_nodes]=x[number_nodes*(1+i)+j];
                                   xv_liq[j+i*number_nodes]=x[number_nodes*(1+number_volatile_components+i)+j];
-                                  //mexPrintf("%f\n",xv_liq[j+i*number_nodes]);
-                                  //mexPrintf("%f\n",xv_liq[j+i*number_nodes]);
-                                  //mexPrintf("%d\n",number_nodes*(2+number_volatile_components+i)+j);
 
                                   MWgas[j] += wig[j+i*number_nodes]*MW_components[i];
                                   wg_N2[j] -= wig[j+i*number_nodes];
                                   epsL_volatile[j] += xv_liq[j+i*number_nodes];
 
-                                  //mexPrintf("%f\n",epsL_volatile[j]);
                              }
                         MWgas[j] += wg_N2[j]*MW_inert;
                         epsL[j]=epsL_volatile[j]+epsL_non_vol[j];
-                    //    mexPrintf("%f\n",MWgas[j]);
                     }
                     cpgTg_in=Tinlet_drying*(cp_N2[0]+cp_N2[1]*Tinlet_drying+cp_N2[2]*pow(Tinlet_drying,2)+
                           cp_N2[3]*pow(Tinlet_drying,3));
@@ -100,30 +97,16 @@ void drying_pde_model(double* t, double x[], int number_nodes,
 
                     // nodes from 1 to end
                     for (j=0; j< number_nodes; j++) {
-                          ug_j[j]=ug0*sqrt(Tg[j]/298.);//(1-epsL[j]/E);// removed, otherwise add also in EB
+                          ug_j[j]=ug0*sqrt(Tg[j]/298.);
                           rho_g_j[j]=Pprofile[j]/(8.314*Tg[j])*MWgas[j];
                           cp_g_j[j]=cp_N2[0]+cp_N2[1]*Tg[j]+cp_N2[2]*pow(Tg[j],2)+cp_N2[3]*pow(Tg[j],3);
 
                           eps_g_j=E-epsL[j];
                           cpgTg[j]=Tg[j]*cp_g_j[j];
-                          // 1st upwind
-                       //   dcpgTgdz[j]=(cpgTg[j]-cpgTg[j-1])/(step_grid_drying);
-                          //dcpgTgdz[0]=(cpgTg[0]-cpgTg_in)/(step_grid_drying);
-                          
-                          // 2nd upwind
-                          //dcpgTgdz[j]=(3*cpgTg[j]-4*cpgTg[j-1]+cpgTg[j-2])/(2*step_grid_drying);             
-                          //dcpgTgdz[1]=(cpgTg[1]-cpgTg[0])/(step_grid_drying);
-                          //dcpgTgdz[0]=(cpgTg[0]-cpgTg_in)/(step_grid_drying);
                           
                           // Tg, upwind 1
                           dTgdz[j]=(Tg[j]-Tg[j-1])/(step_grid_drying);
-                          dTgdz[0]=(Tg[0]-Tinlet_drying)/(step_grid_drying);
-
-                          // Tg, upwind 2
-                          //dTgdz[j]=(3*Tg[j]-4*Tg[j-1]+Tg[j-2])/(2*step_grid_drying);
-                          //dTgdz[1]=(Tg[1]-Tg[0])/(step_grid_drying);
-                          //dTgdz[0]=(Tg[0]-Tinlet_drying)/(step_grid_drying);
-                          
+                          dTgdz[0]=(Tg[0]-Tinlet_drying)/(step_grid_drying);                         
                           
                           dcp_gasdT_j[j]=cp_N2[1]+2*cp_N2[2]*Tg[j]+3*cp_N2[3]*pow(Tg[j],2);
                           sum_DR_j=0;
@@ -139,19 +122,9 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                                 
                               // 1st order
                               dwig_dz[j+i*number_nodes]=(wig[j+i*number_nodes]-wig[j-1+i*number_nodes])/step_grid_drying;
-                                
-                              // 2nd order
-                              //dwig_dz[j+i*number_nodes]=(3*wig[j+i*number_nodes]-4*wig[j-1+i*number_nodes]+wig[j-2+i*number_nodes])/2/step_grid_drying; 
-                              //dwig_dz[1+i*number_nodes]=(wig[1+i*number_nodes]-wig[0+i*number_nodes])/step_grid_drying;
-
-                              //dwig_dz[0+i*number_nodes]=(wig[0+i*number_nodes]-wig_in)/step_grid_drying;
                               
                               dwig_dz[0+i*number_nodes]=(wig[0+i*number_nodes]-wig_in)/step_grid_drying;
-                           //   f=1; 
-                           //   if (xv_liq[j+i*number_nodes]<=vl_eq[i]) 
-                           //   {
-                           //       f=0;
-                           //   }
+
                               if (xv_liq[j+i*number_nodes]<0.016) 
                               {
                                  f=a1*pow(xv_liq[j+i*number_nodes],4)+a2*pow(xv_liq[j+i*number_nodes],3)+
@@ -161,23 +134,14 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                               else if (xv_liq[j+i*number_nodes]<0.11) {
                                  f=b1*xv_liq[j+i*number_nodes]+b2;
                                 }
-                              f=(a1*pow(xv_liq[j+i*number_nodes],4)+a2*pow(xv_liq[j+i*number_nodes],3)+
-                                  a3*pow(xv_liq[j+i*number_nodes],2)+a4*pow(xv_liq[j+i*number_nodes],1)+
-                                  a5)*M;
                               
                               f=MIN(f,1);
                               f=MAX(f,0);
-                              
-                              //mexPrintf("%f\n",f);
-
-                      //        f=MAX(MIN((xv_liq[j+i*number_nodes]-vl_eq[i])/(vl_crit[i]-vl_eq[i]),1),0);
-                      //        Psat_volatiles = pow(10,coeff_antoine[0+i*3]-coeff_antoine[1+i*3]/
-                      //          (coeff_antoine[2+i*3]+(Tg[j]-273.15)))*133.322;
-                      //        Psat_volatiles = pow(10,coeff_antoine[0+i*3]-coeff_antoine[1+i*3]/
-                      //          (coeff_antoine[2+i*3]+Tg[j]))*pow(10,5);
+                                
+                              // Antoine
                               Psat_volatiles = exp(coeff_antoine[0+i*5]+coeff_antoine[1+i*5]/Tg[j]+
                                 coeff_antoine[2+i*5]*log(Tg[j])+coeff_antoine[3+i*5]*pow(Tg[j],coeff_antoine[4+i*5]));
-                          //    mexPrintf("%f\n",coeff_antoine[0+i*5]);
+
                               drying_driving_force=MAX(Psat_volatiles-wig[j+i*number_nodes]/MW_components[i]*MWgas[j]*Pprofile[j],0);
 
                               DR_j[j+i*number_nodes]=h_M[i]*a_V*drying_driving_force*f;
@@ -186,28 +150,22 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                               sum_heat_rxn += DR_j[j+i*number_nodes]*LatHeat[i];
 
                               dxdt[j+number_nodes*(1+number_volatile_components+i)]= -DR_j[j+i*number_nodes]/RhoLComp[i]; //MB_components_L
-                          //    dcpLdt[j] += dxdt[j+number_nodes*(2+number_volatile_components+i)]*CpLComp[i]*RhoLComp[i];
-                          //    mexPrintf("%d\n",j+number_nodes*(2+number_volatile_components+i));
-                          }
-                        //  mexPrintf("rho %d\n",rho_l[j]);
+
                           for (i=0; i<number_volatile_components; i++) {
-                                     // cp
+
                                      wil[j+i*number_nodes]=conc_il[j+i*number_nodes]/rho_l[j];
                                      cp_l[j] += wil[j+i*number_nodes]*CpLComp[i];
 
                                      dxdt[j+number_nodes*(1+i)]= (-ug_j[j]*rho_g_j[j]*dwig_dz[j+i*number_nodes]+DR_j[j+i*number_nodes]-
                                          wig[j+i*number_nodes]*sum_DR_j)/(rho_g_j[j]*eps_g_j); //MB_components_G
 
-                        //             mexPrintf("%d\n",j+number_nodes*(2+i));
                             }
 
-                        //    mexPrintf("%d\n",j+number_nodes);
                           dxdt[j]= (-sum_heat_rxn-ug_j[j]*rho_g_j[j]*cp_g_j[j]*dTgdz[j]) //EB_G
                               /(rho_g_j[j]*eps_g_j*cp_g_j[j]+rho_g_j[j]*
                               eps_g_j*Tg[j]*dcp_gasdT_j[j]+cp_s*rho_sol*(1-E)+cp_l[j]*rho_l[j]*epsL[j]);
                      }
                    }
-
 
 
 #define DXDT plhs[0]
@@ -236,7 +194,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
     number_volatile_components = mxGetScalar(NUMBER_VOLATILE_COMPONENTS);
     epsL_non_vol = mxGetPr(EPSL_NON_VOL);
     Tinlet_drying = mxGetScalar(TINLET_DRYING);
-    cp_N2 = mxGetPr(CP_N2); // cp_N2[4]
+    cp_N2 = mxGetPr(CP_N2); 
     rho_sol = mxGetScalar(RHO_SOL);
     E = mxGetScalar(EE);
     ug0 = mxGetScalar(UG0);
