@@ -5,7 +5,6 @@ function p = carousel_parameters(p)
     p.number_components=length(p.names_components);
     p.number_volatile_components=2; % the last "p.number_components-p.number_volatile_components" are non-volatile (impurities)
     
-
     %% Liquid phase physical properties
     
     % pure components liquid viscosity coefficients (Yaw's) - eq as in visc_liq_components method of carousel_parameters_class_control class
@@ -23,8 +22,7 @@ function p = carousel_parameters(p)
     % Psat = exp(A1+A2/T+A3*log(T)+A4*T^A5;   
     p.coeff_antoine= [76.964, -7623.8, -7.4924, 5.9436e-18, 6,
         74.475, -7164.3,-7.327, 3.1340e-6, 2,
-        0, 0, 0, 0, 0];
-    
+        0, 0, 0, 0, 0];   
     p.surf_t = 22.39e-3;             % Surface tension [N/m] - IPA and EtOH, avg  
     
     %% Carousel parameters

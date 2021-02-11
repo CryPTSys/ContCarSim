@@ -6,8 +6,9 @@ function output=run_simulation()
     
     % set decision variables and inputs
     p.t_rot=100; % s
-    p.V_slurry=5e-6;
+    p.V_slurry=3e-6;
     p.W=1; % Washing ratio
+    p.wash_solvent_mass_fr=[0 1 0]'; % mass fractions - components 1-3 
     p.dP=5e4; % Pressure drop filtration, washing and deliquoring [Pa]
     p.dP_drying=p.dP; % Pressure drop drying [Pa]
     p.Tinlet_drying=70+273.15; % Drying gas temperature [K]

@@ -7,6 +7,7 @@ function deliq_output = model_deliquoring_grad(input,duration_deliq,p)
     % input.final_liq_mass_fr_vect  =   vector liquid phase components mass fractions
     %                                   [number of components x number of nodes] or [number of components x 1] (uniform)
     % input.S_final                 =   vector of initial liquid phase saturation [1 x nodes previous model]
+    % duration_deliq                =   deliquoring duration
     % p                             =   parameters object
     %
     % Optional inputs:
@@ -15,8 +16,9 @@ function deliq_output = model_deliquoring_grad(input,duration_deliq,p)
     %
     % outputs are listed at the end of the code
     
+    %% if cake is very small, use design charts
     if p.L_cake < p.min_length_discr
-        deliq_output=model_deliquoring(input,duration_deliq,p); % if cake is very small, use design charts
+        deliq_output=model_deliquoring(input,duration_deliq,p); 
     else
         
         %% Deliquoring model calculations - solution obtained solving the PDEs model

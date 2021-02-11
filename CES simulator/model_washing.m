@@ -66,23 +66,15 @@ function washing_output=model_washing(input,p)
         %% Dispersion equation for every species in the liquid phase
         ReSc=v*p.m1/p.m0./p.Di_liq;
         Dl=p.Di_liq.*(sqrt(2)^-1+55.5*ReSc.^0.96); % axial diffusivity coefficients  
-        k_ads=0;
-        p.lambda_ads=(1+k_ads*(1-p.E)/p.E)^-1;
+        p.lambda_ads=(1+p.k_ads*(1-p.E)/p.E)^-1;
 
         % Analytical solution neglecting back-flux
         c=species_balance(c0,p.c_inlet,Dl,S,W,v,p);
 
         final_liq_mass_fr_vect=p.mass_fr_from_conc(c); % mass fractions in the liquid phase
         
-        % correction for pre-deliquoring, washing duration and wash solvent volume
-%         Wcorr=mean(mean(p.W+15.1*(1-S(end)).*exp(-1.56*(c(:,end)-p.c_inlet)./(c0-p.c_inlet))-...
-%             7.4*(1-S(end).^2).*exp(-1.72*(c(:,end)-p.c_inlet)./(c0-p.c_inlet))));
-%         washing_volume=Wcorr*p.E*p.A*p.L_cake*mean(S);         
-                                                       
-       % old correction mode
-       washing_volume=p.W*p.V_liquid_pores;
-       
-       washing_duration=washing_volume/Q; % mean(S) is added because at the beginning
+        washing_volume=p.W*p.V_liquid_pores;      
+        washing_duration=washing_volume/Q; % mean(S) is added because at the beginning
                                                        % the cake is partially empty  
         %% Collect outputs in the object washing_output
         washing_output.final_liq_mass_fr_vect=final_liq_mass_fr_vect;
@@ -96,21 +88,23 @@ function washing_output=model_washing(input,p)
 end
 
 function c=species_balance(c0,c_inlet,Dl,S,W,v,p)
-    
+
     z = ones(p.number_components,length(p.nodes_washing)).*p.nodes_washing;
     Dl= ones(size(Dl,1),size(z,2)).*Dl;
+    
     W_lambda=W*p.lambda_ads;
-    c_saturated_cake=c_inlet+(c0-c_inlet).*(0.5*(erfc((z/p.L_cake-W_lambda)./...
-                        (2*sqrt(W_lambda)).*sqrt(v*z./Dl))+exp(v*z./Dl).*...
-                        erfc((z/p.L_cake+W_lambda)./(2*sqrt(W_lambda)).*sqrt(v*z./Dl))));
+    c_saturated_cake=c0+(c_inlet-c0).*0.5.*(erfc((z/p.L_cake-W_lambda)./...
+                        (2*sqrt(W_lambda)).*sqrt(v*p.L_cake./Dl))+exp(v*z./Dl).*...
+                        erfc((z/p.L_cake+W_lambda)./(2*sqrt(W_lambda)).*sqrt(v*p.L_cake./Dl)));
 
     % Compensatation for pre-deliquoring - local Wcorr
     S=max(S);
     Wcorr=W+15.1*(1-S).*exp(-1.56*(c_saturated_cake-c_inlet)./(c0-c_inlet))-...
         7.4*(1-S.^2).*exp(-1.72*(c_saturated_cake-c_inlet)./(c0-c_inlet));
     Wcorr=Wcorr*p.lambda_ads;
-    c=c_inlet+(c0-c_inlet).*(1-0.5*(erfc((1-Wcorr)./(2*sqrt(Wcorr)).*sqrt(v*z./Dl))+exp(v*z./Dl).*erfc((1+Wcorr)./...
-                    (2*sqrt(Wcorr)).*sqrt(v*z./Dl))));
+    c=c0+(c_inlet-c0).*0.5.*((erfc((z/p.L_cake-Wcorr)./(2*sqrt(Wcorr)).*...
+        sqrt(v*p.L_cake./Dl))+exp(v*z./Dl).*erfc((z/p.L_cake+Wcorr)./...
+                    (2*sqrt(Wcorr)).*sqrt(v*p.L_cake./Dl))));
                
 end
 

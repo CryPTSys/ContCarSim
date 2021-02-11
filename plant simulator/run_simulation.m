@@ -4,22 +4,23 @@ function [x,y,controller_output]=run_simulation()
     
     %% Set operating conditions
     p.wash_solvent_mass_fr=[0 1 0]'; % mass fractions - components 1-3 
-    disturbance_flag = 0; % 0: NOC, 1: fouling, 2: increase of impurity in feed   
+    disturbance_flag = 1;   % 0: NOC, 1: fouling, 2: increase of impurity in feed   
+    control_flag = 0;       % 0: open-loop, 1: PID control
     cycles_number = 10;	
     
     u_ss.t_rot=120; % s
     u_ss.V_slurry=5e-6;
-    u_ss.W=1; % Washing ratio
+    u_ss.W=10; % Washing ratio
     u_ss.dP=5e4; % Pressure drop filtration, washing and deliquoring [Pa]
     u_ss.dP_drying=5e4; % Pressure drop drying [Pa]
     u_ss.Tinlet_drying=70+273.15; % Drying gas temperature [K]
     
-    cryst_output.conc_MSMPR=100;  % kg/m3   
-    cryst_output.liq_mass_fr_vect=[0.95 0 0.05]';  % 99% mother liquor, 1% impurity
+    cryst_output.conc_MSMPR=100;  % kg/m3    
+    cryst_output.liq_mass_fr_vect=[0.95 0 0.05]';  % 95% mother liquor, 5% impurity
     cryst_output.T=298;
     
     % Set sampling time and control time
-    p.control_interval = 10; % seconds
+    p.control_interval = 120; % seconds
     p.filtration_sampling_time = 1; % filtrate flowrate sampling time (positions 1-4)
     p.drying_sampling_time = .1; % gas temperature and composition sampling time (position 4)
     
@@ -35,7 +36,7 @@ function [x,y,controller_output]=run_simulation()
     cryst_output.CSD=CSD';
     clear x, clear CSD       
     
-    u_ss.flowrate_slurry=u_ss.V_slurry/u_ss.t_rot;%.025e-6;%1.7e-7; % m3/s
+    u_ss.flowrate_slurry=u_ss.V_slurry/u_ss.t_rot;% m3/s
     u=u_ss;     
     
     p.number_nodes_washing=50; % number of nodes washing (analytical solution)
@@ -44,8 +45,8 @@ function [x,y,controller_output]=run_simulation()
     
     % time variables initialization
     process_time = 0;
-    n_rotation = 0;
-    rotation_time = 0;
+    n_cycle = 0;
+    cycle_time = 0;
 
     % initial states 
     x.pos0.charge_cell_volume = 0;
@@ -68,22 +69,24 @@ function [x,y,controller_output]=run_simulation()
     
     %% Simulation
     while process_time < total_duration
-        if rotation_time < u.t_rot % simulate a step of process operation
+        
+        if cycle_time < u.t_rot % simulate a step of process operation
+            
            % duration of the next simulation step
-           step = min(p.control_interval, u.t_rot - rotation_time); 
+           simulation_step = min(p.control_interval, u.t_rot - cycle_time); 
            
            % simulation
-           [x,y]=carousel_simulator(rotation_time,step,cryst_output,p,u,x,y,n_rotation);     
+           [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle);     
            
            % update timers
-           rotation_time = rotation_time + step; 
-           process_time = process_time + step;
+           cycle_time = cycle_time + simulation_step; 
+           process_time = process_time + simulation_step;
            
            % call disturbance function
            [cryst_output,p,u]=disturbances(process_time,cryst_output,p,u,disturbance_flag); 
            
            % call control routines and save MVs profiles
-           %u = controller(sp,rotation_time,u_ss,p,u,y,n_rotation); % for DP and T_drying update
+           u = controller(sp,cycle_time,u_ss,p,u,y,n_cycle,control_flag); % for DP and T_drying update
            controller_output.t_vector=[controller_output.t_vector process_time];
            controller_output.dP_vector=[controller_output.dP_vector u.dP_drying];
            controller_output.Tin_drying=[controller_output.Tin_drying u.Tinlet_drying];
@@ -91,25 +94,29 @@ function [x,y,controller_output]=run_simulation()
            controller_output.t_rot_vector=[controller_output.t_rot_vector u.t_rot];
            
         else % rotation 
-           % concatenate measurements of new cycle to measurements of previous cycles
-           y = continuous_outputs(process_time,p,x,y,n_rotation); 
+            
+           % concatenate measurements of cycle that has just finished to measurements of previous cycles
+           % for having continuous output from sensors
+           y = continuous_outputs(process_time,p,x,y,n_cycle); 
            
            % call control routine calculating next cycle duration
-%            u = controller_slow(sp,rotation_time,u_ss,p,u,y,n_rotation);
+           u = controller_cycle_duration(sp,cycle_time,u_ss,p,u,y,n_cycle,control_flag);
 
            % update timers
-           rotation_time = 0;
-           n_rotation = n_rotation +1;
+           cycle_time = 0;
+           n_cycle = n_cycle +1;
            
-           % call switch phase routine
-           [x,y]=switch_phase(process_time,cryst_output,p,u,x,y,n_rotation);
+           % call switch cycle routine
+           [x,y]=switch_cycle(process_time,cryst_output,p,u,x,y,n_cycle);
 
         end 
     end
     
 % concatenate measurements of last cycle to measurements of previous cycles  
-y = continuous_outputs(process_time,p,x,y,n_rotation);
+% for having continuous output from sensors
+y = continuous_outputs(process_time,p,x,y,n_cycle);
 
+return
 
 %% Graphical output
 % figure(1) 
@@ -144,7 +151,7 @@ xlabel('Time [min]')
 ylabel('Filter mesh resistance [1/m]')
 set(gca,'fontsize',18,'linewidth',1)
 
-figure(4)
+figure(2)
 box on
 hold on
 plot(linspace(0,total_duration,length(controller_output.dP_vector))/60,controller_output.t_rot_vector/60,'linewidth',1.5)
@@ -153,7 +160,7 @@ xlabel('Time [min]')
 ylabel('Cycle duration [min]')
 % legend('slurry conc = 50 kg/m3 - nominal','slurry conc = 90 kg/m3','slurry conc = 10 kg/m3 ')
 
-figure(5)
+figure(3)
 box on
 semilogy(max(y.final_composition(1:end-1,:)'),'linewidth',1)
 hold on

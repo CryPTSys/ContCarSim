@@ -66,7 +66,6 @@ void deliquoring_pde_model(double* t, double x[], int number_nodes, double step_
                              dwidz[1+number_nodes*i]=(wi[1+number_nodes*i]-wi[0+number_nodes*i])/step_grid_dimless;
                            }
 
-
                            // calculations first two nodes
                            Pl[0]=(Pg[0]-Pb*pow(SR[0],-1/lambda))/Pb/scaling;
                            kl[0]=pow(SR[0],(2+3*lambda)/lambda);

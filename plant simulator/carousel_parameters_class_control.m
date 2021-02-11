@@ -3,10 +3,9 @@ classdef carousel_parameters_class_control
         names_components
         Rm_vector
         time_vector
-        control_time
+        control_interval
         error_t_rot
-        V_filt_step
-        drying_time_step
+        filtration_sampling_time
         number_components
         number_volatile_components
         visc_liq_coeff 
@@ -51,8 +50,7 @@ classdef carousel_parameters_class_control
         min_length_discr
         t_rot
         W
-        dP
-        filtration_sampling_time
+        dP       
         drying_sampling_time
         dP_drying
         Tinlet_drying

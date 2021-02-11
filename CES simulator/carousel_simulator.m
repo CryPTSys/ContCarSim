@@ -91,6 +91,7 @@ function output=carousel_simulator(cryst_output,p)
             drying_output.t_drying=0;
             drying_output.Tgas=[];
             drying_output.Pprofile=[];
+            drying_output.mass_cont_impurities=[1 1 1]';
         end
         
     %% Create output object

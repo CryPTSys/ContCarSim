@@ -66,6 +66,7 @@ function output=run_sensitivity(t_rot, V_slurry, hm_dist, Rm_dist, E_dist, alpha
     p.dP=5e4; % Pressure drop filtration, washing and deliquoring [Pa]
     p.dP_drying=p.dP; % Pressure drop drying [Pa]
     p.Tinlet_drying=70+273.15; % Drying gas temperature [K]
+    p.wash_solvent_mass_fr=[0 1 0]'; % mass fractions - components 1-3 
     cryst_output.liq_mass_fr_vect=[0.95 0 0.05]'; % 99% mother liquor, 1% impurity
     cryst_output.T=298;
 

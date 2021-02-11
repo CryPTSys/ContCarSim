@@ -1,5 +1,8 @@
 function [cryst_output,p,u]=disturbances(t,cryst_output,p,u,flag)
-        
+        % Function called to simulate disturbances
+        % flag = 1: ramp in p.Rm (filter mesh resistance)
+        % flag = 2: ramp in impurity content in inlet slurry
+
         if t > 120*6 && t < 120*75
             if flag == 1
                 p.Rm= 3e9+(t-6*120)*3e9*.005;
@@ -10,6 +13,8 @@ function [cryst_output,p,u]=disturbances(t,cryst_output,p,u,flag)
         else
             p.Rm=3e9;
         end
+        
+        % store disturbance profile
         p.Rm_vector=[p.Rm_vector p.Rm];
         p.time_vector=[p.time_vector t];
 end

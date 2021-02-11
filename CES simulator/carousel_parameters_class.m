@@ -1,9 +1,11 @@
 classdef carousel_parameters_class
     properties
+        wash_solvent_mass_fr
         Di_gas
         V_slurry
         V_filt_step
         drying_time_step
+        names_components
         number_components
         number_volatile_components
         visc_liq_coeff 
@@ -33,6 +35,7 @@ classdef carousel_parameters_class
         m3
         alpha
         k
+        k_ads
         a_V
         k_air
         MW_air
