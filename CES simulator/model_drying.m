@@ -23,7 +23,7 @@ function drying_output = model_drying(input,drying_duration,p)
     initial_liq_mass_fr_vect=input.final_liq_mass_fr_vect;
     rho_liq=p.rho_liquid_phase_from_mass_fr(mean(initial_liq_mass_fr_vect,2));
     p.dP=p.dP_drying;
-    p.S_inf=sum(0.155*(1+0.031*p.N_cap_CSD(p.x,rho_liq).^(-0.49)).*p.CSD);    % irreducible cake saturation (minimum saturation that can be achieved by displacement of the interstitial liquid by the applied vacuum    
+    p.S_inf=sum(0.155*(1+0.031*p.N_cap_CSD(p.x_perc,rho_liq).^(-0.49)).*p.CSD_perc);    % irreducible cake saturation (minimum saturation that can be achieved by displacement of the interstitial liquid by the applied vacuum    
     SR0=(mean(input.S_final)-p.S_inf)/(1-p.S_inf);   
     % if the cake is not deliquored  (SR> 20%), calculate the time needed
     % for getting SR = 20% and carry out deliquoring

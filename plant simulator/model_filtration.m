@@ -1,4 +1,4 @@
-function [x,y]=model_filtration(cycle_time,Dt,p,u,x,y,n_cycle,pos) 
+function [x,y]=model_filtration(~,Dt,p,u,x,y,n_cycle,pos) 
     %%  Inputs list
     %   cycle_time - unused
     %   Dt = duration of filtration step

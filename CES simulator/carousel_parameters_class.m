@@ -85,6 +85,8 @@ classdef carousel_parameters_class
         visc_liq
         x
         CSD
+        x_perc
+        CSD_perc
     end 
     methods 
         function output=visc_liq_components(obj,T) 

@@ -10,9 +10,11 @@ function E = porosity_function_shape(filter_diameter,CSD,x,AR)
     % kv - volumetric shape coefficient (a dependence on AR and x can be implemented)
     % ks - surface shape coefficient (a dependence on AR and x can be implemented)
     % AR - aspect ratio: considered constant in this version
+    
     kv=0.524;
     ks=3.142;
     sphericity=1;
+    
     % bins and grid
     Dx=x(2:end)-x(1:end-1);
     x=(x(2:end)+x(1:end-1))/2;

@@ -1,19 +1,18 @@
 function u = controller(sp,t,u_ss,p,u,y,n_rotation, control_flag)
     
     if control_flag > 0
-
+        
         %% split range control - MVs=Dp_drying/Tg,out_drying, CV=Tg,out_drying
         if n_rotation>4 % starts from second drying cycle
-            % set-point profiles interpolation
-            sp.Tg_pos4=interp1(sp.t_ref_Tg,sp.Tg_pos4_ref,(p.control_time*sp.t_rot_ref/u.t_rot):...
-                (p.control_time*sp.t_rot_ref/u.t_rot):(u.t_rot*sp.t_rot_ref/u.t_rot));
-
-    %         t_sp=(p.control_time*sp.t_rot_ref/u.t_rot):...
-    %             (p.control_time*sp.t_rot_ref/u.t_rot):(u.t_rot*sp.t_rot_ref/u.t_rot);
-    %         t_meas=y.pos4.(['cycle_' num2str(n_rotation-3)]).t_drying((1+p.control_time/p.drying_time_step):p.control_time/p.drying_time_step:(t/p.drying_time_step+1));
-
-
-            y_dryer_out_Tg=y.pos4.(['cycle_' num2str(n_rotation-3)]).Tg((1+p.control_time/p.drying_time_step):p.control_time/p.drying_time_step:(t/p.drying_time_step+1));
+            
+            % scaling of temperature profile set-point to current cycle duration
+            sp.Tg_pos4=interp1(sp.t_ref_Tg,sp.Tg_pos4_ref,(p.control_interval*sp.t_rot_ref/u.t_rot):...
+                (p.control_interval*sp.t_rot_ref/u.t_rot):(u.t_rot*sp.t_rot_ref/u.t_rot));
+            
+            y_dryer_out_Tg=y.pos4.(['cycle_' num2str(n_rotation-3)]).Tg((1+...
+                p.control_interval/p.drying_sampling_time):p.control_interval/...
+                p.drying_sampling_time:(t/p.drying_sampling_time+1));
+            
             length_meas=length(y_dryer_out_Tg);
             if length_meas>2
                 measurement=y_dryer_out_Tg(end-2:end);
@@ -30,9 +29,9 @@ function u = controller(sp,t,u_ss,p,u,y,n_rotation, control_flag)
                 errorK=sp.Tg_pos4(length_meas)-measurement(end);
                 errorK_minus1=sp.Tg_pos4(end)-y.cont_sign.pos4.Tg(end);
                 if length(sp.Tg_pos4) == 1
-                    errorK_minus2=sp.Tg_pos4(end)-y.cont_sign.pos4.Tg(end-p.control_time/p.drying_time_step-1);
+                    errorK_minus2=sp.Tg_pos4(end)-y.cont_sign.pos4.Tg(end-p.control_interval/p.drying_sampling_time-1);
                 else
-                    errorK_minus2=sp.Tg_pos4(end-1)-y.cont_sign.pos4.Tg(end-p.control_time/p.drying_time_step);
+                    errorK_minus2=sp.Tg_pos4(end-1)-y.cont_sign.pos4.Tg(end-p.control_interval/p.drying_sampling_time);
                 end
             end
             if t>u.t_rot*.9 %&& t>u.t_rot*.5
@@ -45,7 +44,7 @@ function u = controller(sp,t,u_ss,p,u,y,n_rotation, control_flag)
                     Kc=.0001;
                     tauI=.0001;
                     tauD=0;
-                    u.dP_drying=max(3e4,min(u.dP_drying+Kc*(errorK-errorK_minus1+p.control_time/tauI*errorK+tauD/p.control_time*...
+                    u.dP_drying=max(3e4,min(u.dP_drying+Kc*(errorK-errorK_minus1+p.control_interval/tauI*errorK+tauD/p.control_interval*...
                             (errorK-2*errorK_minus1+errorK_minus2)),6e4));
 
                 end

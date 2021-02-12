@@ -11,12 +11,11 @@ c_slurry=50;
 % initialization
 it_number=0;
 
-% load CSD
 load CSD
+CSD=CSD/100;
+CSD=CSD/sum(CSD);
 cryst_output.x=x;
-cryst_output.CSD=CSD/100/(pi/6)./x.^4; % number based distribution
-cryst_output.x_perc=x_perc;
-cryst_output.CSD_perc=CSD_perc/100; % volume percentage distribution 
+cryst_output.CSD=CSD;
 
 tic
 % calculation of probability for every grid point

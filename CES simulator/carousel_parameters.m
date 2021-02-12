@@ -54,12 +54,10 @@ function p = carousel_parameters(cryst_output,p)
     p.m1=trapz(cryst_output.x,cryst_output.CSD.*cryst_output.x); 
     p.m2=trapz(cryst_output.x,cryst_output.CSD.*(cryst_output.x.^2)); 
     p.m3=trapz(cryst_output.x,cryst_output.CSD.*(cryst_output.x.^3)); 
-    p.alpha=sum(p.alpha_CSD(cryst_output.x).*cryst_output.CSD);
+    p.alpha=sum(p.alpha_CSD(cryst_output.x_perc).*cryst_output.CSD_perc);
     p.k=1/(p.alpha*p.rho_sol*(1-p.E));      % cake permeability [?]
     p.a_V=6*p.m2/p.m3; % 109000; %
-    p.x=cryst_output.x;
-    p.CSD=cryst_output.CSD;
-    
+
     %% Calculations from set operating conditions and parameters
     p.c_inlet=p.conc_from_mass_fr(p.wash_solvent_mass_fr); % wash solvent composition [kg/m3] - components 1-3
     p.A = p.station_diameter.^2.*pi./4;                    % filtration area [m^2]

@@ -86,6 +86,8 @@ function [x,y]=switch_cycle(t,cryst_output,p,u,x,y,n_cycle)
             x.pos1.liq_mass_fr_vect=cryst_output.liq_mass_fr_vect;
             x.pos1.x=cryst_output.x;
             x.pos1.CSD=cryst_output.CSD;
+            x.pos1.x_perc=cryst_output.x_perc;
+            x.pos1.CSD_perc=cryst_output.CSD_perc;
             
             % initial filtration states
             x.pos1.filtration_time=0;
@@ -99,7 +101,7 @@ function [x,y]=switch_cycle(t,cryst_output,p,u,x,y,n_cycle)
             x.pos1.m1=trapz(x.pos1.x,x.pos1.CSD.*x.pos1.x); 
             x.pos1.m2=trapz(x.pos1.x,x.pos1.CSD.*(x.pos1.x.^2)); 
             x.pos1.m3=trapz(x.pos1.x,x.pos1.CSD.*(x.pos1.x.^3)); 
-            x.pos1.alpha=trapz(x.pos1.x,p.alpha_CSD(x.pos1.x,x.pos1.E).*x.pos1.CSD/x.pos1.m0);
+            x.pos1.alpha=sum(p.alpha_CSD(x.pos1.x_perc,x.pos1.E).*x.pos1.CSD_perc);
             x.pos1.k=1/(x.pos1.alpha*p.rho_sol*(1-x.pos1.E));    
             x.pos1.a_V=6*x.pos1.m2/x.pos1.m3;
 
@@ -112,7 +114,7 @@ function [x,y]=switch_cycle(t,cryst_output,p,u,x,y,n_cycle)
             x.pos1.V_filt_final=x.pos1.V_liq_initial-x.pos1.V_liquid_pores_end_of_filtration;   % volume of filtrate at the end of filtration [m3]
             x.pos1.c=(x.pos1.m_solid_initial)/x.pos1.V_filt_final; % Mass of dry cake deposited per unit volume of filtrate [kg sol/ m3 filtrate liquid]more compact way, but same results as Brigi's
             x.pos1.L_cake=(x.pos1.c*x.pos1.V_filt_final/p.rho_sol/(1-x.pos1.E))/p.A; % height of the deposited cake [m]    
-            x.pos1.Pb=trapz(x.pos1.x,p.pb_CSD(x.pos1.x,x.pos1.E).*x.pos1.CSD/x.pos1.m0);
+            x.pos1.Pb=sum(p.pb_CSD(x.pos1.x_perc,x.pos1.E).*x.pos1.CSD_perc);
             x.pos1.V_liquid_pores=x.pos1.V_liquid_pores_end_of_filtration;
 
             x.pos1.number_nodes_deliq=max(round(x.pos1.L_cake/p.min_length_discr)+1,2);

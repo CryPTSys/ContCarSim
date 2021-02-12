@@ -1,4 +1,4 @@
-function u = controller_slow(sp,t,u_ss,p,u,y,n_rotation, control_flag)
+function u = controller_cycle_duration(sp,t,u_ss,p,u,y,n_rotation, control_flag)
     if control_flag > 0
         if n_rotation>5 
     %         % set-point profiles interpolation

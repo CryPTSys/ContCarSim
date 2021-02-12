@@ -13,6 +13,7 @@ function E = porosity_function_shape(filter_diameter,CSD,x,AR)
     kv=0.524;
     ks=3.142;
     sphericity=1;
+    
     % bins and grid
     Dx=x(2:end)-x(1:end-1);
     x=(x(2:end)+x(1:end-1))/2;

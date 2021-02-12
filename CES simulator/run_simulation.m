@@ -18,10 +18,10 @@ function output=run_simulation()
 
     % load CSD
     load CSD
-    CSD=CSD/100;
-%     CSD=CSD/sum(CSD);
     cryst_output.x=x;
-    cryst_output.CSD=CSD;
+    cryst_output.CSD=CSD/100/(pi/6)./x.^4; % number based distribution
+    cryst_output.x_perc=x_perc;
+    cryst_output.CSD_perc=CSD_perc/100; % volume percentage distribution
  
     % set discretization options
     p.number_nodes_washing=50; % number of nodes washing (analytical solution)
@@ -37,10 +37,6 @@ function output=run_simulation()
     
     % calculate remaining parameters
     p = carousel_parameters(cryst_output,p);   
-    CSD=CSD/100;
-    CSD=CSD/sum(CSD);
-    cryst_output.x=x;
-    cryst_output.CSD=CSD;
     
     tic
     %% Simulation  

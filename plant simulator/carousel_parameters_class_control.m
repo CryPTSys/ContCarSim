@@ -85,6 +85,8 @@ classdef carousel_parameters_class_control
         visc_liq
         x
         CSD
+        x_perc
+        CSD_perc
         wash_solvent_mass_fr
         k_ads
     end 
@@ -111,7 +113,7 @@ classdef carousel_parameters_class_control
         function output = conc_from_mass_fr(obj,w) % calculates concentrations from mass fractions - liquid phase
             output= w.*obj.rho_liquid_phase_from_mass_fr(w);
         end
-              
+            
         function output=alpha_CSD(obj,dp,E) % calculates specific cake resistance of cake with particles of size dp and porosity E - Kozeny–Carman eq
             output=180*(1-E)./(E^3*dp.^2*obj.rho_sol);
         end
