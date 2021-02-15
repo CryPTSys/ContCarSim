@@ -27,7 +27,7 @@ function p = carousel_parameters(p)
     
     %% Carousel parameters
     p.station_diameter = 0.01;       % Filter diameter [m]
-    p.Rm = 2e10;                     % Filter medium resistance [??m^-1];
+%     p.Rm = 2e10;                     % Filter medium resistance [??m^-1];
              
     %% Gas phase physical properties 
     % assumed same as pure air
@@ -40,10 +40,10 @@ function p = carousel_parameters(p)
     p.rho_sol = 1260;                % PCM density [kg/m^3]
     p.lambda = 5;                    % pore size index for deliquoring model [-]
     p.cp_s = 2200;                   % Drying - (aspirin) solid specific heat [J/(kg K)]   
-    p.a_V = 126000;                  % Specific surface area [m2/m3] - measured with master sizer #
+    p.a_V = 127000;                  % Specific surface area [m2/m3] - measured with master sizer #
     
     %% Kinetics
-    p.h_M = [2.25*1e-5/p.a_V 2.25*1e-5/p.a_V 0]';   % Drying kinetic parameter      #
+    p.h_M = [2.25*1e-5/p.a_V 2.25*1e-5/p.a_V 0]'*5;   % Drying kinetic parameter      #
     p.vl_crit = [0.10 0.10 0 ]';                    % Drying - critical impurity content [m3_i/m3]
     p.vl_eq = [5e-5 5e-5 1]';                       % Drying - equilibrium impurity content [m3_l/m3] 
     p.k_ads=0;                                      % Adsorption kinetic parameter

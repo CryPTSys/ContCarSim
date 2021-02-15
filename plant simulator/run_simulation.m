@@ -15,7 +15,7 @@ function [process_time,p,x,y,controller_output]=run_simulation(p,u_ss,cryst_outp
     u=u_ss;     
     
     p.number_nodes_washing=50; % number of nodes washing (analytical solution)
-    p.min_length_discr=2e-4;   % grid spacing for deliquoring and drying
+    p.min_length_discr=4e-4;   % grid spacing for deliquoring and drying
     p = carousel_parameters(p);
     
     % time variables initialization
@@ -58,7 +58,7 @@ function [process_time,p,x,y,controller_output]=run_simulation(p,u_ss,cryst_outp
            process_time = process_time + simulation_step;
            
            % call disturbance function
-           [cryst_output,p,u]=disturbances(process_time,cryst_output,p,u,disturbance_flag); 
+           [cryst_output,p]=disturbances(process_time,cryst_output,p,u_ss,disturbance_flag); 
            
            % call control routines and save MVs profiles
            u = controller(sp,cycle_time,u_ss,p,u,y,n_cycle,control_flag); % for DP and T_drying update

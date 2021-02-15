@@ -17,12 +17,12 @@ function u = controller_cycle_duration(~,~,~,~,u,~,n_cycle, control_flag)
                 end
                 
                 % if dP and drying inlet temperature are saturated, update cycle duration
-                if u.Tinlet_drying >= 70+273.15 % right part of splitted ranges
+                if u.Tinlet_drying >= 70+273.15 
                     Kc=5e-4;
                     tauI=.008;
                     u.t_rot=round(max(1,u.t_rot+Kc*(errorK-errorK_minus1+2/tauI*errorK)));
 
-                elseif u.dP_drying<=3e4 % left part of splitted ranges
+                elseif u.dP_drying<=3e4
                     Kc=2.8e-4;
                     tauI=.001;
                     u.t_rot=round(max(1,u.t_rot+Kc*(errorK-errorK_minus1+2/tauI*errorK)));

@@ -11,7 +11,7 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
         if n_cycle > 0
             
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
-            x.pos1.dP_media_vacuum=u.dP./(x.pos1.alpha*x.pos1.c*x.pos1.V_filt_final/p.A+p.Rm)*p.Rm; 
+            x.pos1.dP_mesh=u.dP./(x.pos1.alpha*x.pos1.c*x.pos1.V_filt_final/p.A+p.Rm)*p.Rm; 
             
             %----------------------------------------------------------------------------------------
             % filtration 
@@ -51,15 +51,15 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
             
             %----------------------------------------------------------------------------------------
             % filtrate volume sensor - add filtrate volume from Station 1
-            sampling_times1_4=y.pos1.(['cycle_' num2str(n_cycle)]).t_filt((end-p.control_interval/p.filtration_sampling_time):end);
+            sampling_times1_4=y.pos1.(['cycle_' num2str(n_cycle)]).t_filt((end+1-p.control_interval/p.filtration_sampling_time):end);
             y.cont_sign.pos1_4.t=[y.cont_sign.pos1_4.t y.cont_sign.pos1_4.t(end)-cycle_time+sampling_times1_4];
-            collected_volume=y.pos1.(['cycle_' num2str(n_cycle)]).V_filt((end-p.control_interval/p.filtration_sampling_time):end);
+            collected_volume=y.pos1.(['cycle_' num2str(n_cycle)]).V_filt((end+1-p.control_interval/p.filtration_sampling_time):end);
         end  
         
         %% Position 2
         if n_cycle > 1
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
-            x.pos2.dP_media_vacuum=u.dP./(x.pos2.alpha*x.pos2.c*x.pos2.V_filt_final/p.A+p.Rm)*p.Rm; 
+            x.pos2.dP_mesh=u.dP./(x.pos2.alpha*x.pos2.c*x.pos2.V_filt_final/p.A+p.Rm)*p.Rm; 
             
             %----------------------------------------------------------------------------------------
             % filtration
@@ -135,7 +135,7 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
         %% Position 3
         if n_cycle > 2
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
-            x.pos3.dP_media_vacuum=u.dP./(x.pos3.alpha*x.pos3.c*x.pos3.V_filt_final/p.A+p.Rm)*p.Rm; 
+            x.pos3.dP_mesh=u.dP./(x.pos3.alpha*x.pos3.c*x.pos3.V_filt_final/p.A+p.Rm)*p.Rm; 
             
             %----------------------------------------------------------------------------------------
             % filtration
@@ -202,8 +202,8 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
                         
             %----------------------------------------------------------------------------------------
             % filtrate volume sensor - add filtrate volume from Station 3
-            collected_volume = collected_volume + interp1(y.pos3.(['cycle_' num2str(n_cycle-2)]).t_filt((end-p.control_interval/p.filtration_sampling_time):(end)),...
-                y.pos3.(['cycle_' num2str(n_cycle-2)]).V_filt((end-p.control_interval/p.filtration_sampling_time):(end)),...
+            collected_volume = collected_volume + interp1(y.pos3.(['cycle_' num2str(n_cycle-2)]).t_filt,...
+                y.pos3.(['cycle_' num2str(n_cycle-2)]).V_filt,...
                 sampling_times1_4);
         end
         
@@ -211,7 +211,7 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
         %% Position 4
         if n_cycle > 3
             % update pressure drop through filter mesh (depends on u.dP_drying and p.Rm)
-            x.pos4.dP_media_vacuum=u.dP_drying./(x.pos4.alpha*x.pos4.c*x.pos4.V_filt_final/p.A+p.Rm)*p.Rm; 
+            x.pos4.dP_mesh=u.dP_drying./(x.pos4.alpha*x.pos4.c*x.pos4.V_filt_final/p.A+p.Rm)*p.Rm; 
             
             %----------------------------------------------------------------------------------------
             % filtration
@@ -278,8 +278,8 @@ function [x,y]=carousel_simulator(cycle_time,simulation_step,p,u,x,y,n_cycle)
             %----------------------------------------------------------------------------------------
             % filtrate volume sensor - add filtrate volume from Station 4 (if there is any) 
             if sum(y.pos4.(['cycle_' num2str(n_cycle-3)]).V_filt)>0
-                collected_volume = collected_volume + interp1(y.pos4.(['cycle_' num2str(n_cycle-3)]).t_filt((end-p.control_interval/p.filtration_sampling_time):(end)),...
-                    y.pos4.(['cycle_' num2str(n_cycle-3)]).V_filt((end-p.control_interval/p.filtration_sampling_time):(end)),...
+                collected_volume = collected_volume + interp1(y.pos4.(['cycle_' num2str(n_cycle-3)]).t_filt,...
+                    y.pos4.(['cycle_' num2str(n_cycle-3)]).V_filt,...
                     sampling_times1_4);
             end
         end    

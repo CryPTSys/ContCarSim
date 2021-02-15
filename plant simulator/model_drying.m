@@ -1,4 +1,4 @@
-function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_cycle,pos)
+function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_batch,pos)
     % differential drying model
     
     %%  Inputs list
@@ -14,7 +14,7 @@ function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_cycle,pos)
     rho_liq=p.rho_liquid_phase_from_mass_fr(mean(x.pos4.liq_mass_fr_vect,2));
     x.(['pos' num2str(pos)]).S_inf=sum(0.155*(1+...
         0.031*p.N_cap_CSD(x.(['pos' num2str(pos)]).x_perc,rho_liq,...
-        x.(['pos' num2str(pos)]).E,u.dP,x.(['pos' num2str(pos)]).L_cake).^...
+        x.(['pos' num2str(pos)]).E,u.dP_drying,x.(['pos' num2str(pos)]).L_cake).^...
         (-0.49)).*x.(['pos' num2str(pos)]).CSD_perc);   
     
     %% Initial conditions (creation of local objects with shorter names for conciseness)
@@ -36,14 +36,14 @@ function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_cycle,pos)
         residual_deliq=min(Dt,residual_deliq_theta*((xx.k.*(u.dP_drying))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf)))^-1);  % duration of deliquoring in position 4
         Dt=Dt-residual_deliq;
         u.dP=u.dP_drying;
-        [x,y]=model_deliquoring_species_grad(t,residual_deliq,p,u,x,y,n_cycle,pos); % deliquoring simulation
+        [x,y]=model_deliquoring_species_grad(t,residual_deliq,p,u,x,y,n_batch,pos); % deliquoring simulation
         % measurement vectors update
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_drying=...
-            y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_filt;
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).wg=...
-            zeros(p.number_volatile_components,length(y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_filt));
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).Tg=298*...
-            ones(1,length(y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_filt));
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_drying=...
+            y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt;
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).wg=...
+            zeros(p.number_volatile_components,length(y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt));
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).Tg=298*...
+            ones(1,length(y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt));
     end
     
     %% Drying simulation
@@ -71,9 +71,10 @@ function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_cycle,pos)
         end
 
         % Calculations
-        dPgdz=u.dP_drying/xx.L_cake;
-        Pprofile=linspace(101325+u.dP_drying-dPgdz*xx.step_grid_drying/2,...
-            101325-dPgdz*xx.step_grid_drying/2,xx.number_nodes_drying);
+        dPgdz=(u.dP_drying-xx.dP_mesh)/xx.L_cake;        
+        Pgin=101325+u.dP_drying-dPgdz*xx.step_grid_drying/2; % pressure first node
+        Pgout=101325-dPgdz*xx.step_grid_drying/2;          % pressure last node
+        Pprofile=linspace(Pgin,Pgout,xx.number_nodes_drying);
         ug0=u.dP_drying/(p.visc_gas_phase*(xx.alpha*p.rho_sol*xx.L_cake*(1-xx.E)+p.Rm)); % temperature and saturation dependencies added in mex file        
         epsL_0=S0*xx.E; % liquid phase volumetric fraction in cake
         Tg_0=xx.Tg; % gas temperature profile
@@ -136,13 +137,13 @@ function [x,y] = model_drying(cycle_time,Dt,p,u,x,y,n_cycle,pos)
         x.(['pos' num2str(pos)]).gas_mass_fr_vect=mass_frG(end,:);
 
         % measurements
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_drying=...
-            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).t_drying,...
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_drying=...
+            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_drying,...
             t_drying(2:end)'];
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).Tg=...
-            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).Tg, Tgas(2:end,end)'];
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).wg=...
-            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_cycle)]).wg,...
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).Tg=...
+            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).Tg, Tgas(2:end,end)'];
+        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).wg=...
+            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).wg,...
             mass_frG(2:end,[1:p.number_volatile_components]*xx.number_nodes_drying)'];
     end
 end

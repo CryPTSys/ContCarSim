@@ -54,16 +54,25 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                            xv_liq[number_nodes*number_volatile_components],DR_j[number_nodes*number_volatile_components],
                            MB_components_G[number_nodes*number_volatile_components],
                            MB_components_L[number_nodes*number_volatile_components], dwig_dz[number_nodes*number_volatile_components],
-                           MWgas[number_nodes], wg_N2[number_nodes], dTgdz[number_nodes];
+                           MWgas[number_nodes], wg_N2[number_nodes], dTgdz[number_nodes],
+                           a1, a2, a3, a4, a5, b1, b2;
 
                     int i, j;
 
                     (void)t;
-
+                    // drying effectiveness parameters regressed from TGA experiments on PCM (See CES paper)
+                    a1=-3.56837E7;
+                    a2=1.7128E6;
+                    a3=-3.0190E4;
+                    a4=233.6379;
+                    a5=0.0086;
+                    b1=3.3735;
+                    b2=0.6299;
+                    
+                                        
                     // Initialization
                     for (j=0; j<number_nodes; j++) {
-                        Tg[j]=x[j];
-                        Ts[j]=Tg[j]; //x[j+number_nodes];
+                        Tg[j]=x[j];                        
                         epsL_volatile[j]=0;
                         MWgas[j]=0;
                         wg_N2[j]=1;
@@ -140,17 +149,26 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                               
                               dwig_dz[0+i*number_nodes]=(wig[0+i*number_nodes]-wig_in)/step_grid_drying;
 
-
-
-
-                              f=MAX(MIN((xv_liq[j+i*number_nodes]-vl_eq[i])/(vl_crit[i]-vl_eq[i]),1),0);
+                              // f=MAX(MIN((xv_liq[j+i*number_nodes]-vl_eq[i])/(vl_crit[i]-vl_eq[i]),1),0);
+                              
+                              f=1;
+                              if (xv_liq[j+i*number_nodes]<0.016) 
+                              {
+                                 f=a1*pow(xv_liq[j+i*number_nodes],4)+a2*pow(xv_liq[j+i*number_nodes],3)+
+                                  a3*pow(xv_liq[j+i*number_nodes],2)+a4*pow(xv_liq[j+i*number_nodes],1)+
+                                  a5;
+                                }
+                              else if (xv_liq[j+i*number_nodes]<0.11) {
+                                 f=b1*xv_liq[j+i*number_nodes]+b2;
+                                }
+                              
+                              f=MIN(f,1);
+                              f=MAX(f,0);
 
                               Psat_volatiles = exp(coeff_antoine[0+i*5]+coeff_antoine[1+i*5]/Tg[j]+
                                 coeff_antoine[2+i*5]*log(Tg[j])+coeff_antoine[3+i*5]*pow(Tg[j],coeff_antoine[4+i*5]));
 
                               drying_driving_force=MAX(Psat_volatiles-wig[j+i*number_nodes]/MW_components[i]*MWgas[j]*Pprofile[j],0);
-
-
 
                               DR_j[j+i*number_nodes]=h_M[i]*a_V*drying_driving_force*f;
 
