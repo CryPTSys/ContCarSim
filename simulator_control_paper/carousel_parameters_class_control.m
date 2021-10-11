@@ -3,28 +3,20 @@ classdef carousel_parameters_class_control
         names_components
         ports_working
         cp_gas_components
-        Rm_clean
-        Rm_array
-        wg_end
-        time_vector
+        integration_interval
         control_interval
         V_slurry
-        Q
-        error_t_rot
         filtration_sampling_time
         number_components
-        number_volatile_components
-        Rm_vect
+        number_volatile_components        
         visc_liq_coeff 
         MW_components
         cp
         rho_liq_components
-        c_inlet
-        Di_liq
         cp_liq_components
-        vl_crit
+        wl_crit
         h_M
-        vl_eq
+        wl_eq
         latent_heat
         coeff_antoine
         station_diameter
@@ -34,71 +26,17 @@ classdef carousel_parameters_class_control
         visc_gas_phase
         surf_t
         lambda
-        k0
-        gamma
         A
         E
-        m0
-        m1
-        m2
-        m3
-        alpha
-        k
         a_V
         k_air
         MW_air
         cp_air
         cp_s
-        number_nodes_deliq
-        number_nodes_filt
-        number_nodes_washing
-        number_nodes_drying
-        time_step_deliq
-        time_step_filt
-        time_step_drying
         min_length_discr
-        t_rot
-        W
-        dP       
         drying_sampling_time
-        dP_drying
-        Tinlet_drying
-        L_cake
-        Pb
-        V_liquid_pores
-        m_dry_cake
-        dP_media_vacuum
-        S_inf
         number_nodes
-        nodes_list
-        step_grid_drying
-        nodes_drying
-        dPgdz
-        ug
-        Pprofile
-        cp_l
-        rho_l
-        repLatHeat
-        repRhoLComp
         h_T
-        epsL_non_vol
-        step_grid_deliq
-        nodes_deliq
-        Pgin
-        Pgout
-        Pg
-        scaling
-        step_grid_washing
-        nodes_washing
-        lambda_ads
-        visc_liq
-        x
-        CSD
-        x_perc
-        CSD_perc
-        wash_solvent_mass_fr
-        k_ads
-        n_cycle_cip
     end 
     methods 
         function output=visc_liq_components(obj,T)  % Liquid viscosity [Pa s] - T in [K] Yaw

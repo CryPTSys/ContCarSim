@@ -1,9 +1,9 @@
-function [x,y] = model_deliquoring_grad(cycle_time,Dt,p,u,x,y,n_batch,pos)
+function [x,y] = model_deliquoring_grad(batch_time,Dt,p,u,x,y,n_batch,pos)
     % differential deliquoring model, withOUT species balance: to be used
     % when initial liquid composition is UNIFORM
 
     %%  Inputs list
-    %   cycle_time = cycle timer
+    %   batch_time = cycle timer
     %   Dt = duration of deliquoring step
     %   p = properties object
     %   u = inputs vector
@@ -18,11 +18,11 @@ function [x,y] = model_deliquoring_grad(cycle_time,Dt,p,u,x,y,n_batch,pos)
 
     %% if cake is small, use design charts for simulating deliquoring
     if x.(['pos' num2str(pos)]).L_cake <p.min_length_discr
-        [x,y] = model_deliquoring(cycle_time,Dt,p,u,x,y,n_batch,pos);
+        [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos);
     else
     %% Deliquoring model calculations - solution obtained solving the PDEs model
         % Initial conditions (creation of local objects with shorter names for conciseness)    
-        t=cycle_time;
+        t=batch_time;
         xx=x.(['pos' num2str(pos)]);                    
         S0=xx.S;
         
@@ -64,10 +64,13 @@ function [x,y] = model_deliquoring_grad(cycle_time,Dt,p,u,x,y,n_batch,pos)
             S_t=[S_t(1,:); S_t(end,:)];
         end
         
-        % Saturation and filtrate volume calculation
+        % Saturation, filtrate volume and residual impurities calculation
         S_t=xx.S_inf+S_t*(1-xx.S_inf); % saturation dynamic profile
         V_filt=sum((S0-S_t)*xx.E*xx.step_grid_deliq*p.A,2); % filtrate as function of time [m3]
-
+        vol_cont_impurities=S_t*xx.E;
+        rho_cake=vol_cont_impurities.*rho_liq+(1-xx.E)*p.rho_sol;
+        composition=mean(vol_cont_impurities./rho_cake.*p.rho_liq_components,2); 
+        
         %% Updates states vector (x) and measurement vector (y)
         % states
         t_deliq=t+t_deliq;
@@ -76,14 +79,19 @@ function [x,y] = model_deliquoring_grad(cycle_time,Dt,p,u,x,y,n_batch,pos)
         x.(['pos' num2str(pos)]).nodes=xx.nodes_deliq;
     
         % measurements
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt=...
-            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt...
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t=...
+            [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t...
             t_deliq(2:end)];
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt=...
-            [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt, ...
-            y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt(end)+...
-            V_filt(2:end)];
-
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt=...
+            [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt, ...
+            y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt(end)+...
+            V_filt(2:end)*p.rho_liq_components];
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake=...
+            [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake,...
+            composition(2:end)'];
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).S=...
+            [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).S,...
+            mean(S_t(2:end,:),2)'];
         
     end
 end

@@ -1,4 +1,4 @@
-function x_estim = estimator_cycle_end(x_estim,u,y,control_flag)
+function x_estim = estimator_cycle_end(x_estim,u,measurements,control_flag)
 
 end
 

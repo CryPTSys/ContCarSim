@@ -21,8 +21,8 @@
 #define PPROFILE prhs[10]
 #define MW_INERT prhs[11]
 #define STEP_GRID_DRYING prhs[12]
-#define VL_CRIT prhs[13]
-#define VL_EQ prhs[14]
+#define WL_CRIT prhs[13]
+#define WL_EQ prhs[14]
 #define COEFF_ANTOINE prhs[15]
 #define MW_COMPONENTS prhs[16]
 #define H_M prhs[17]
@@ -55,8 +55,8 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                   int number_volatile_components, double epsL_non_vol[],
                   double Tinlet_drying, double cp_gas_coeff[],
                   double rho_sol, double E, double ug0, double Pprofile[],
-                  double MW_inert, double step_grid_drying, double vl_crit[],
-                  double vl_eq[], double coeff_antoine[], double MW_components[],
+                  double MW_inert, double step_grid_drying, double wl_crit[],
+                  double wl_eq[], double coeff_antoine[], double MW_components[],
                   double h_M[], double a_V, double RhoLComp[],
                   double LatHeat[], double CpLComp[], double cp_s,
                   double dxdt[], double h_T_j)
@@ -128,7 +128,7 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                              // effectiveness calculation 
                              f=1;                                
                              rho_cake=epsL[j]*rho_l[j]+(1-E)*rho_sol;                                 
-                             wi_cake=xv_liq[j+i*number_nodes]/rho_cake*RhoLComp[i]-vl_eq[i];
+                             wi_cake=xv_liq[j+i*number_nodes]/rho_cake*RhoLComp[i]-wl_eq[i];
                              if (wi_cake<0.016) 
                              {
                                  f=(a1*pow(wi_cake,4)+a2*pow(wi_cake,3)+
@@ -198,7 +198,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
 
     double *t, Tinlet_drying, *x, h_T_j,
       rho_sol, E, ug0, MW_inert, step_grid_drying, a_V, cp_s,
-      *vl_crit, *vl_eq, *epsL_non_vol, *Pprofile, *cp_gas_coeff, *coeff_antoine,
+      *wl_crit, *wl_eq, *epsL_non_vol, *Pprofile, *cp_gas_coeff, *coeff_antoine,
       *MW_components, *h_M, *RhoLComp, *LatHeat, *CpLComp ;
 
 
@@ -218,8 +218,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
     Pprofile = mxGetPr(PPROFILE);
     MW_inert = mxGetScalar(MW_INERT);
     step_grid_drying = mxGetScalar(STEP_GRID_DRYING);
-    vl_crit = mxGetPr(VL_CRIT);
-    vl_eq = mxGetPr(VL_EQ);
+    wl_crit = mxGetPr(WL_CRIT);
+    wl_eq = mxGetPr(WL_EQ);
     coeff_antoine = mxGetPr(COEFF_ANTOINE);
     MW_components = mxGetPr(MW_COMPONENTS);
     h_M = mxGetPr(H_M);
@@ -238,7 +238,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
     drying_pde_model(t, x, number_nodes,
                      number_volatile_components, epsL_non_vol, Tinlet_drying, cp_gas_coeff,
                      rho_sol, E, ug0, Pprofile, MW_inert, step_grid_drying,
-                     vl_crit, vl_eq, coeff_antoine, MW_components, h_M, a_V,
+                     wl_crit, wl_eq, coeff_antoine, MW_components, h_M, a_V,
                      RhoLComp, LatHeat, CpLComp, cp_s, dxdt, h_T_j);
 
     return;

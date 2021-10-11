@@ -1,6 +1,6 @@
 function [x,y] = model_deliquoring(t,Dt,p,u,x,y,n_batch,pos)
     %%  Inputs list
-    %   cycle_time - cycle timer
+    %   batch_time - cycle timer
     %   Dt = duration of deliquoring step
     %   p = properties object
     %   x = states (+additional properties) object
@@ -46,6 +46,11 @@ function [x,y] = model_deliquoring(t,Dt,p,u,x,y,n_batch,pos)
     SR=1./(1+1.46.*ThetaP.^0.48).*n_switch+1./(1+1.08.*ThetaP.^0.88).*(1-n_switch);
     S=xx.S_inf+SR.*(1-xx.S_inf); 
     
+    % impurities
+    vol_cont_impurities=S_t*xx.E;
+    rho_cake=vol_cont_impurities.*rho_liq+(1-xx.E)*p.rho_sol;
+    composition=mean(vol_cont_impurities./rho_cake.*p.rho_liq_components,2); 
+    
     %% Updates states vector (x) and measurement vector (y)
     % states
     t_filt=t_deliq+t;
@@ -53,19 +58,20 @@ function [x,y] = model_deliquoring(t,Dt,p,u,x,y,n_batch,pos)
     x.(['pos' num2str(pos)]).S=S(end);
     x.(['pos' num2str(pos)]).nodes=[];
     x.(['pos' num2str(pos)]).liq_mass_fr_vect=repmat(initial_liq_mass_fr_vect(:,end),[1,length(ThetaP)]);
-
+    
     % measurements
-    y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt=...
-        [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).t_filt ...
+    y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t=...
+        [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t ...
         t_filt(2:end)];
-    y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt=...
-        [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt, ...
-        y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).V_filt(end)+...
-        V_filt(2:end)];
-    y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).w_filt=...
-        [y.(['pos' num2str(pos)]).(['cycle_' num2str(n_batch)]).w_filt,...
-        repmat(x.(['pos' num2str(pos)]).liq_mass_fr_vect(:,end),[1 length(ThetaP)-1])];
-
-        
-
+    y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt=...
+        [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt, ...
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt(end)+...
+        V_filt(2:end)*p.rho_liq_components];
+    y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake=...
+        [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake,...
+        composition(2:end)'];
+    y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake=...
+        [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake,...
+        S(2:end)'];
+    
 end
