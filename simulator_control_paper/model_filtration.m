@@ -37,10 +37,22 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
     % volume and filtration time carried out in current station in
     % measurement vector y
     if pos > 1
-        x.(['pos' num2str(pos)]).V_filt0=-y.(['pos' num2str(pos-1)]).(['batch_' num2str(n_batch)]).m_filt(end);
+        x.(['pos' num2str(pos)]).m_filt0=-y.(['pos' num2str(pos-1)]).(['batch_' num2str(n_batch)]).m_filt(end);
         x.(['pos' num2str(pos)]).t_filt0=-y.(['pos' num2str(pos-1)]).(['batch_' num2str(n_batch)]).t(end);
+        if pos>2
+            x.(['pos' num2str(pos)]).m_filt0=x.(['pos' num2str(pos)]).m_filt0-...
+                y.(['pos' num2str(pos-2)]).(['batch_' num2str(n_batch)]).m_filt(end);
+            x.(['pos' num2str(pos)]).t_filt0=x.(['pos' num2str(pos)]).t_filt0-...
+                y.(['pos' num2str(pos-2)]).(['batch_' num2str(n_batch)]).t(end);
+            if pos>3
+                x.(['pos' num2str(pos)]).m_filt0=x.(['pos' num2str(pos)]).m_filt0-...
+                    y.(['pos' num2str(pos-3)]).(['batch_' num2str(n_batch)]).m_filt(end);
+                x.(['pos' num2str(pos)]).t_filt0=x.(['pos' num2str(pos)]).t_filt0-...
+                    y.(['pos' num2str(pos-3)]).(['batch_' num2str(n_batch)]).t(end);
+            end
+        end
     else
-        x.(['pos' num2str(pos)]).V_filt0=0; 
+        x.(['pos' num2str(pos)]).m_filt0=0; 
         x.(['pos' num2str(pos)]).t_filt0=0;
     end
      
@@ -51,7 +63,7 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
 
     y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt=...
         [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt,...
-        (V_filt+x.(['pos' num2str(pos)]).V_filt0)*p.rho_liq_components];  
+        (V_filt*p.rho_liq_components+x.(['pos' num2str(pos)]).m_filt0)];  
        
     y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake=...
         [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake,...
@@ -59,17 +71,18 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
 
     y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).S=...
         [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).S,...
-        ones(1,length(t))];
+        ones(1,length(t_filt))];
 
+    y.sequence.(['batch_' num2str(n_batch)]).filtration_duration=...
+        y.sequence.(['batch_' num2str(n_batch)]).filtration_duration+Dt;
+        
     %% Check if filtration finished
     if abs(x.(['pos' num2str(pos)]).filtration_time-x.(['pos' num2str(pos)]).filtration_duration)<1e-2
         x.(['pos' num2str(pos)]).filtration_finished=1;
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t(end)=[];
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt(end)=[];
-        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).m_filt(end)=[];
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_cake(end)=[];
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).S(end)=[];
     end
-
 end
 

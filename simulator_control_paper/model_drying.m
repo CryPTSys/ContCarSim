@@ -27,18 +27,25 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
         n_switch=min(max(SR0-.2,0)*100,1);   
         thetaP0=((1-SR0)/(1.08*SR0))^(1/.88)*(1-n_switch)+((1-SR0)/(1.46*SR0))^(1/.48)*n_switch;
         residual_deliq_theta=8-thetaP0; % estimation of deliquoring time for reaching SR=20% using design charts
-        visc_liq=p.visc_liquid_phase_from_mass_fr(xx.T,mean(initial_liq_mass_fr_vect,2));
-        residual_deliq=min(Dt,residual_deliq_theta*((xx.k.*(u.dP_drying))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf)))^-1);  % duration of deliquoring in position 4
+        visc_liq=p.visc_liq_components(xx.T);
+        residual_deliq=min(Dt,residual_deliq_theta*((xx.k.*(u.dP))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf)))^-1);  % duration of deliquoring in position 4
         Dt=Dt-residual_deliq;
-        u.dP=u.dP_drying;
+        u.dP=u.dP;
         [x,y]=model_deliquoring_grad(t,residual_deliq,p,u,x,y,n_batch,pos); % deliquoring simulation
-        % measurement vectors update
-        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t=...
-            y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t;
+        % measurement vectors 
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_gas=...
             zeros(p.number_volatile_components,length(y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t));
-        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg=298*...
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg_top=...
+            y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg_top(end)*...
             ones(1,length(y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t));
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Vdryer=...
+            zeros(1,length(y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t));         
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg_bot=...
+            y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg_bot(end)*...
+            ones(1,length(y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t));
+        y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Ts_bot=...
+            y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Ts_bot(end)*...
+            ones(1,length(y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).t));    
     end
     
     %% Drying simulation
@@ -47,14 +54,20 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
         xx=x.(['pos' num2str(pos)]);      
         S0=xx.S;
         
+        % Rescale initial saturation and composition profiles to match current grid
+        if size(S0,2)>1 && abs(S0(1,1)-S0(1,end))/S0(1)>1e-5 
+            S0 = interp1(xx.nodes,S0,xx.nodes_drying);
+        else
+            S0 = ones(1,xx.number_nodes_drying).*S0(:,1);
+        end                
         initial_liq_conc=p.rho_liq_components;
 
         % Calculations
-        dPgdz=(u.dP_drying-xx.dP_mesh)/xx.L_cake;        
-        Pgin=101325+u.dP_drying-dPgdz*xx.step_grid_drying/2; % pressure first node
+        dPgdz=(u.dP-xx.dP_mesh)/xx.L_cake;        
+        Pgin=101325+u.dP-dPgdz*xx.step_grid_drying/2; % pressure first node
         Pgout=101325-dPgdz*xx.step_grid_drying/2;          % pressure last node
         Pprofile=linspace(Pgin,Pgout,xx.number_nodes_drying);
-        ug0=u.dP_drying/(p.visc_gas_phase*(xx.alpha*p.rho_sol*xx.L_cake*(1-xx.E)+p.Rm(pos))); % temperature and saturation dependencies added in mex file        
+        ug0=u.dP/(p.visc_gas_phase*(xx.alpha*p.rho_sol*xx.L_cake*(1-xx.E)+p.Rm(pos))); % temperature and saturation dependencies added in mex file        
         epsL_0=S0*xx.E; % liquid phase volumetric fraction in cake
         Tg_0=xx.Tg; % gas temperature profile
         Ts_0=xx.Ts;
@@ -159,6 +172,8 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
             [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Tg_top, Tin(2:end)];
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Vdryer=...
             [y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).Vdryer, (1000*60*ug0*p.A*ones(1,length(Tin)-1))];
+        y.sequence.(['batch_' num2str(n_batch)]).drying_duration=...
+            y.sequence.(['batch_' num2str(n_batch)]).drying_duration+Dt;
         
     end
 end

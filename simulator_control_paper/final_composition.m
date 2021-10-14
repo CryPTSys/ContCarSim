@@ -2,7 +2,7 @@ function y = final_composition(p,x,y,n_rotation)
     % calculation of composition of discharged cake (mass fractions)      
     
     if n_rotation > 3
-        if sum(p.ports_working==4)==1     
+        if p.ports_working(4)==1     
             eps_l=mean(x.pos4.E.*x.pos4.S);       
             rho_liq=p.rho_liq_components;
             rho_cake=eps_l*rho_liq+(1-x.pos4.E)*p.rho_sol;        

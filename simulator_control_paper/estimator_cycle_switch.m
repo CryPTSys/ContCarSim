@@ -1,4 +1,4 @@
-function x_estim = estimator_online(x_estim,u,measurements,control_flag)
+function x_estim = estimator_cycle_switch(x_estim,u,measurements,control_flag)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Inputs
     %
@@ -29,9 +29,7 @@ function x_estim = estimator_online(x_estim,u,measurements,control_flag)
     %                       Object containing states and parameters
     %                       estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-    
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
 end
 

@@ -8,7 +8,8 @@ classdef carousel_parameters_class_control
         V_slurry
         filtration_sampling_time
         number_components
-        number_volatile_components        
+        number_volatile_components    
+        T_room
         visc_liq_coeff 
         MW_components
         cp

@@ -9,6 +9,7 @@ function simulation_output = run_simulation(u,...
     p.control_interval=control_interval;
     p.filtration_sampling_time=sampling_time;
     p.drying_sampling_time=sampling_time;
+    p.T_room=cryst_output.T;
     
     % Initialize disturbances vector
     d.V_slurry_dist=1; 
@@ -48,7 +49,6 @@ function simulation_output = run_simulation(u,...
     x=[];   
     measurements=[];
     y=[];
-    u.dP_drying=u.dP;     % pressure drop Station 4 [Pa]    
     
     %% Simulation
     while process_time <= total_duration 
@@ -70,25 +70,25 @@ function simulation_output = run_simulation(u,...
            
            % call online control routines and save MVs profiles
            if ceil(batch_time/p.control_interval)== batch_time/p.control_interval
-               [u,manipulated_vars] = controller_online(batch_time,...
-                   p.ports_working,u,u_nominal,measurements,manipulated_vars,...
-                   x_estim,n_cycle,control_flag);
+               [u,manipulated_vars] = controller_online(process_time,batch_time,...
+               p.ports_working,u,u_nominal,measurements,manipulated_vars,x_estim,...
+               n_cycle,control_flag);
            end
         else % rotation                      
            
            % call end of cycle estimation routines
-           x_estim = estimator_cycle_end(x_estim,u,y,control_flag);
+           x_estim = estimator_cycle_switch(x_estim,u,y,control_flag);
             
            % calculate ethanol content in discharged cake
            y = final_composition(p,x,y,n_cycle); 
                                           
            % update timers
            batch_time = 0;
-           n_cycle = n_cycle +1;
+           n_cycle = n_cycle+1;
            p.ports_working=d.ports_working(n_cycle,:);
            
            % call end of cycle control routines and save MVs profiles
-           [u,manipulated_vars] = controller_cycle_switch(batch_time,...
+           [u,manipulated_vars] = controller_cycle_switch(process_time,batch_time,...
                p.ports_working,u,u_nominal,measurements,manipulated_vars,x_estim,...
                n_cycle,control_flag);
            
@@ -102,32 +102,37 @@ function simulation_output = run_simulation(u,...
     end
 
 %% Prepare output object
-d1.resistances=d.resistances(1:manipulated_vars.n_batch_vector(end),:);
-d1.ports_working=d.ports_working(1:manipulated_vars.n_batch_vector(end),:);
-d1.c_slurry=d.c_slurry(1:manipulated_vars.n_batch_vector(end));
-d1.V_slurry=d.V_slurry(1:manipulated_vars.n_batch_vector(end));
-d1.E=d.E(1:manipulated_vars.n_batch_vector(end));
-d1.hM=d.hM(1:manipulated_vars.n_batch_vector(end));
-d1.hT=d.hT(1:manipulated_vars.n_batch_vector(end));
-d=d1;
+if length(manipulated_vars.n_cycle_vector)>1
+    d1.resistances=d.resistances(1:manipulated_vars.n_cycle_vector(end),:);
+    d1.ports_working=d.ports_working(1:manipulated_vars.n_cycle_vector(end),:);
+    d1.c_slurry=d.c_slurry(1:manipulated_vars.n_cycle_vector(end));
+    d1.V_slurry=d.V_slurry(1:manipulated_vars.n_cycle_vector(end));
+    d1.E=d.E(1:manipulated_vars.n_cycle_vector(end));
+    d1.hM=d.hM(1:manipulated_vars.n_cycle_vector(end));
+    d1.hT=d.hT(1:manipulated_vars.n_cycle_vector(end));
+    d=d1;
+else
+    disp('No cakes discharged')
+end
 
 simulation_output.states=y;
 simulation_output.measurements=measurements;
 simulation_output.disturbances=d;
 simulation_output.manipulated_vars=manipulated_vars;
 simulation_output.estimated_states_parameters=x_estim;
-simulation_output.feed.c_slurry_vector=x.c_slurry_vector;
+simulation_output.feed.c_slurry_vector=cryst_output.conc_slurry;
 
 simulation_output.settings.control_flag=control_flag;
 simulation_output.settings.disturbance_flag=disturbance_flag;
 simulation_output.settings.control_interval=control_interval;
 simulation_output.settings.sampling_time=sampling_time;
 simulation_output.settings.total_duration=total_duration;
+simulation_output.settings.c_slurry_initial=cryst_output.conc_slurry;
 simulation_output.settings.u_nominal=u_nominal;
 
 if n_cycle>4
-    throughput=d1.V_slurry.*simulation_output.manipulated_vars.V_slurry_vector;%.*...
-%         d1.c_slurry.*simulation_output.feed.c_slurry_vector;
+    throughput=d1.V_slurry.*simulation_output.manipulated_vars.V_slurry_vector.*...
+        d1.c_slurry.*simulation_output.feed.c_slurry_vector;
     simulation_output.throughput=sum(throughput(1:length(simulation_output.states.final_composition)));
 else
     simulation_output.throughput=0;

@@ -1,6 +1,6 @@
 function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,x,y,measurements,n_cycle)        
         %% Station 1
-        if sum(p.ports_working==1)>0
+        if p.ports_working(1)==1
             
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
             x.pos1.dP_mesh=u.dP./(x.pos1.alpha*x.pos1.c*x.pos1.V_filt_final/p.A+p.Rm(1))*p.Rm(1); 
@@ -52,11 +52,11 @@ function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,
         
         % filtrate volume sensor WI101 - add filtrate volume from Station 1
         sampling_times1_4=y.pos1.(['batch_' num2str(n_cycle)]).t((end+1-p.integration_interval/p.filtration_sampling_time):end);
-        measurements.t=[measurements.t measurements.t(end)-batch_time+sampling_times1_4];
+        measurements.t_meas=[measurements.t_meas measurements.t_meas(end)-batch_time+sampling_times1_4];
         collected_mass=y.pos1.(['batch_' num2str(n_cycle)]).m_filt((end+1-p.integration_interval/p.filtration_sampling_time):end)+x.m_filt_bias;
         
         %% Station 2
-        if sum(p.ports_working==2)>0
+        if p.ports_working(2)==1
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
             x.pos2.dP_mesh=u.dP./(x.pos2.alpha*x.pos2.c*x.pos2.V_filt_final/p.A+p.Rm(2))*p.Rm(2); 
             
@@ -110,7 +110,7 @@ function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,
         end
         
         %% Station 3
-        if sum(p.ports_working==3)>0
+        if p.ports_working(3)==1
             % update pressure drop through filter mesh (depends on u.dP and p.Rm)
             x.pos3.dP_mesh=u.dP./(x.pos3.alpha*x.pos3.c*x.pos3.V_filt_final/p.A+p.Rm(3))*p.Rm(3); 
             
@@ -164,9 +164,9 @@ function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,
         end        
         
         %% Station 4
-        if sum(p.ports_working==4)>0
+        if p.ports_working(4)==1
             % update pressure drop through filter mesh (depends on u.dP_drying and p.Rm)
-            x.pos4.dP_mesh=u.dP_drying./(x.pos4.alpha*x.pos4.c*x.pos4.V_filt_final/p.A+p.Rm(4))*p.Rm(4); 
+            x.pos4.dP_mesh=u.dP./(x.pos4.alpha*x.pos4.c*x.pos4.V_filt_final/p.A+p.Rm(4))*p.Rm(4); 
             
             %----------------------------------------------------------------------------------------
             % filtration            
@@ -202,21 +202,27 @@ function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,
             % drying simulation
             if drying_duration > 0
                 [x,y]=model_drying(batch_time+filtration_duration_step,drying_duration,p,d,u,x,y,n_cycle-3,4); 
+            else
+                y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
+                y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
+                y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
+                y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_gas=[y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_gas zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];
+                y.pos4.(['batch_' num2str(n_cycle-3)]).Vdryer=[y.pos4.(['batch_' num2str(n_cycle-3)]).Vdryer zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];
             end
             
             %----------------------------------------------------------------------------------------
             % filtrate volume sensor WI101 - add filtrate volume from Station 4 (if there is any) 
             if sum(y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt)>0
-                collected_mass = collected_mass + interp1(y.pos4.(['batch_' num2str(n_cycle-3)]).t,...
+                collected_mass = collected_mass + interp1(y.pos4.(['batch_' num2str(n_cycle-3)]).t(1:length(y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt)),...
                     y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt,...
                     sampling_times1_4);
             end
         elseif n_cycle > 3
             y.pos4.(['batch_' num2str(n_cycle-3)]).t=[y.pos4.(['batch_' num2str(n_cycle-3)]).t batch_time:p.filtration_sampling_time:batch_time+simulation_step];
             y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt=[y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];                        
-            y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*295.15];
-            y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*295.15];
-            y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*295.15];
+            y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
+            y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
+            y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot=[y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot ones(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))*p.T_room];
             y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_gas=[y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_gas zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];
             y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_cake=[y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_cake zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];
             y.pos4.(['batch_' num2str(n_cycle-3)]).Vdryer=[y.pos4.(['batch_' num2str(n_cycle-3)]).Vdryer zeros(1, length(batch_time:p.filtration_sampling_time:batch_time+simulation_step))];
@@ -228,7 +234,7 @@ function [x,y,measurements]=carousel_simulator(batch_time,simulation_step,p,d,u,
         %------------------------------------------------------------------
         % filtrate sensor WI101 reading
         measurements.m_filt_WI101=[measurements.m_filt_WI101, collected_mass+randn(1,length(collected_mass))*0.00005];   
-        measurements.t(isnan(measurements.m_filt_WI101))=[];
+        measurements.t_meas(isnan(measurements.m_filt_WI101))=[];
         measurements.m_filt_WI101(isnan(measurements.m_filt_WI101))=[];  
         % slurry concentration reading AI101
         measurements.c_slurry_AI101=[measurements.c_slurry_AI101 x.pos1.c_slurry*ones(1,length(collected_mass))+randn(1,length(collected_mass))*0.05];

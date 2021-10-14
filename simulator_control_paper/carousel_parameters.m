@@ -6,7 +6,7 @@ function p = carousel_parameters(p)
     
     %% Liquid phase physical properties    
     % pure components liquid viscosity coefficients (Yaw's) - eq as in visc_liq_components method of carousel_parameters_class_control class
-    p.visc_liq_coeff=[-3.1970 7.4084E+02 4.6291E-03 -7.1715E-06 ] ;         % coefficients component 1    
+    p.visc_liq_coeff = [-3.1970 7.4084E+02 4.6291E-03 -7.1715E-06] ;         % coefficients component 1    
     p.MW_components=46.07*1e-3;               % molecular weights [kg/mol] - components 1:3
     p.rho_liq_components=842;                 % pure component liquid densities [kg/m^3] - components 1:3  
     p.cp_liq_components = 2570;               % pure component specific heat [J/(kg K)] - components 1-3

@@ -10,11 +10,11 @@ function [cryst_output,d,p]=disturbances(t,cryst_output,p,d,u,n_cycle,flag)
     d.E_dist=d.E(n_cycle);
     d.alpha_dist=1+(1-d.E_dist)/d.E_dist^3; 
     
-    %% slurry concentration ramp
-    if flag == 1            
-        if t>300
-            cryst_output.conc_MSMPR=cryst_output.conc_MSMPR*(1+(t-300)/60*0.02);
-        end        
-    end
+%     %% slurry concentration ramp
+%     if flag == 1            
+%         if t>300
+%             cryst_output.conc_slurry=cryst_output.conc_slurry*(1+(t-300)/60*0.02);
+%         end        
+%     end
     
 end
