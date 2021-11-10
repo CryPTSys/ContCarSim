@@ -1,5 +1,5 @@
-function [u,u_nominal,manipulated_vars] = controller_cycle_switch(process_time,cycle_time,...
-               stations_working,u,u_nominal,cryst_output_nominal,measurements,manipulated_vars,x_estim,...
+function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cycle_time,...
+               stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
                n_cycle,control_mode)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Inputs
@@ -32,14 +32,14 @@ function [u,u_nominal,manipulated_vars] = controller_cycle_switch(process_time,c
     %                       - measurements.Tg_in_TI101 = vector of temperatures of drying gas measured by TI101 (K) - inlet
     %                       - measurements.Tg_out_TI102 = vector of temperatures of drying gas measured by TI102 (K) - outlet                      
     %                       - measurements.Vdryer_FI101 = vector of drying gas flowrate measured by FI101 (m3/s)
-    % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
-    %                       Fields of manipulated_vars:
-    %                       - manipulated_vars.t_vector = control times vector
-    %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
-    %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
+    % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
+    %                       Fields of operating_vars:
+    %                       - operating_vars.t_vector = control times vector
+    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
+    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
     % n_cycle           =   cycle counter - number of cycle that has just finished
@@ -56,14 +56,14 @@ function [u,u_nominal,manipulated_vars] = controller_cycle_switch(process_time,c
     %                       will retain the value set for the previous control interval
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       or updated later. Same fields of u
-    % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
-    %                       Fields of manipulated_vars:
-    %                       - manipulated_vars.t_vector = control times vector
-    %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
-    %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
+    % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
+    %                       Fields of operating_vars:
+    %                       - operating_vars.t_vector = control times vector
+    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
+    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         
     
@@ -76,11 +76,11 @@ function [u,u_nominal,manipulated_vars] = controller_cycle_switch(process_time,c
        u.V_slurry=0;          % then no slurry loaded in Station 1
     end
 
-    %% Store manipulated variables profile
-    manipulated_vars.n_cycle_vector=[manipulated_vars.n_cycle_vector n_cycle];         
-    manipulated_vars.V_slurry_vector=[manipulated_vars.V_slurry_vector u.V_slurry];
+    % Store manipulated variables profile
+    operating_vars.n_cycle_vector=[operating_vars.n_cycle_vector n_cycle];         
+    operating_vars.V_slurry_vector=[operating_vars.V_slurry_vector u.V_slurry];
     if n_cycle > 1
-        manipulated_vars.t_rot_vector=[manipulated_vars.t_rot_vector u.t_rot];
+        operating_vars.t_rot_vector=[operating_vars.t_rot_vector u.t_rot];
     end
 
 end

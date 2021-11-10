@@ -1,5 +1,5 @@
-function [u,manipulated_vars] = controller_online(process_time,cycle_time,...
-    stations_working,u,u_nominal,cryst_output_nominal,measurements,manipulated_vars,x_estim,n_cycle,control_mode)
+function [u,operating_vars] = controller_online(process_time,cycle_time,...
+    stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,n_cycle,control_mode)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Inputs
@@ -38,14 +38,14 @@ function [u,manipulated_vars] = controller_online(process_time,cycle_time,...
     %                       - measurements.Tg_in_TI101 = vector of temperatures of drying gas measured by TI101 (K) - inlet
     %                       - measurements.Tg_out_TI102 = vector of temperatures of drying gas measured by TI102 (K) - outlet                      
     %                       - measurements.Vdryer_FI101 = vector of drying gas flowrate measured by FI101 (m3/s)
-    % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
-    %                       Fields of manipulated_vars:
-    %                       - manipulated_vars.t_vector = control times vector
-    %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
-    %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
+    % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
+    %                       Fields of operating_vars:
+    %                       - operating_vars.t_vector = control times vector
+    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
+    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
     % n_cycle           =   cycle counter - number of current cycle
@@ -60,14 +60,14 @@ function [u,manipulated_vars] = controller_online(process_time,cycle_time,...
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)   
     %         -------->     Fields not updated during call to this function
     %                       will retain the value set for the previous control interval
-    % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
-    %                       Fields of manipulated_vars:
-    %                       - manipulated_vars.t_vector = control times vector
-    %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
-    %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
+    % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
+    %                       Fields of operating_vars:
+    %                       - operating_vars.t_vector = control times vector
+    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
+    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %% Paper simulator
@@ -83,10 +83,10 @@ function [u,manipulated_vars] = controller_online(process_time,cycle_time,...
     elseif control_mode == 0 || stations_working(4)==0 % open-loop - or if Station 4 is empty
         u.t_rot=u_nominal.t_rot;
     end   
-    
-   %% Store manipulated variables profile
-   manipulated_vars.t_vector=[manipulated_vars.t_vector process_time];     
-   manipulated_vars.dP_vector=[manipulated_vars.dP_vector u.dP];
-   manipulated_vars.Tin_drying_vector=[manipulated_vars.Tin_drying_vector u.Tinlet_drying];
+   %% do not modify part below
+   % Store manipulated variables profile
+   operating_vars.t_vector=[operating_vars.t_vector process_time];     
+   operating_vars.dP_vector=[operating_vars.dP_vector u.dP];
+   operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying];
    
 end

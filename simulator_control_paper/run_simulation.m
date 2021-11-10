@@ -55,13 +55,13 @@ function simulation_output = run_simulation(u,...
     
     % Initialize object containing manipulated variables profile
     % updated online
-    manipulated_vars.t_vector=[]; % process time vector
-    manipulated_vars.dP_vector=[];
-    manipulated_vars.Tin_drying_vector=[];
+    operating_vars.t_vector=[]; % process time vector
+    operating_vars.dP_vector=[];
+    operating_vars.Tin_drying_vector=[];
     % updated at the end of every cycle
-    manipulated_vars.n_cycle_vector=[];
-    manipulated_vars.t_rot_vector=[];  % rotation time vector
-    manipulated_vars.V_slurry_vector=[]; % fed slurry vector
+    operating_vars.n_cycle_vector=[];
+    operating_vars.t_rot_vector=[];  % rotation time vector
+    operating_vars.V_slurry_vector=[]; % fed slurry vector
     
     % time variables initialization
     process_time = 0;
@@ -115,15 +115,15 @@ function simulation_output = run_simulation(u,...
            
            % call online estimation routines
            x_estim = estimator_online(process_time,cycle_time,...
-               p.stations_working,u,measurements,manipulated_vars,x_estim,...
+               p.stations_working,u,measurements,operating_vars,x_estim,...
                n_cycle,control_flag,p.filtration_sampling_time,...
                p.control_interval,simulation_step);
            
            % call online control routines and save MVs profiles
            if ceil(cycle_time/p.control_interval)== cycle_time/p.control_interval         
                % other control strategies
-               [u,manipulated_vars] = controller_online(process_time,cycle_time,...
-               p.stations_working,u,u_nominal,cryst_output_nominal,measurements,manipulated_vars,x_estim,...
+               [u,operating_vars] = controller_online(process_time,cycle_time,...
+               p.stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
                n_cycle,control_flag);
            end
            
@@ -131,7 +131,7 @@ function simulation_output = run_simulation(u,...
            
            % call end of cycle estimation routines
            x_estim = estimator_cycle_switch(process_time,cycle_time,...
-               p.stations_working,u,measurements,manipulated_vars,x_estim,...
+               p.stations_working,u,measurements,operating_vars,x_estim,...
                n_cycle,control_flag,p.filtration_sampling_time,p.control_interval);
            
            % calculate ethanol content in discharged cake
@@ -143,9 +143,9 @@ function simulation_output = run_simulation(u,...
            p.stations_working = d.stations_working(n_cycle,:);
            
            % call end of cycle control routines and save MVs profiles
-           [u,u_nominal,manipulated_vars] = controller_cycle_switch(process_time,cycle_time,...
+           [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cycle_time,...
                p.stations_working,u,u_nominal,cryst_output_nominal,measurements,...
-               manipulated_vars,x_estim,n_cycle,control_flag);
+               operating_vars,x_estim,n_cycle,control_flag);
            
            % call disturbance function
            [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_flag);
@@ -156,32 +156,35 @@ function simulation_output = run_simulation(u,...
     end
 
 %% Prepare output object
-if length(manipulated_vars.n_cycle_vector)>4
-    d1.resistances=d.resistances(1:manipulated_vars.n_cycle_vector(end),:);
-    d1.c_slurry=d.c_slurry(1:manipulated_vars.n_cycle_vector(end));
-    d1.V_slurry=d.V_slurry(1:manipulated_vars.n_cycle_vector(end));
-    d1.E=d.E(1:manipulated_vars.n_cycle_vector(end));
-    d1.alpha=d.alpha(1:manipulated_vars.n_cycle_vector(end));
-    d1.hM=d.hM(1:manipulated_vars.n_cycle_vector(end));
-    d1.hT=d.hT(1:manipulated_vars.n_cycle_vector(end));
-
+if length(operating_vars.n_cycle_vector)>4
+    d1.resistances=d.resistances(1:operating_vars.n_cycle_vector(end),:);
+    d1.c_slurry=d.c_slurry(1:operating_vars.n_cycle_vector(end));
+    d1.V_slurry=d.V_slurry(1:operating_vars.n_cycle_vector(end));
+    d1.E=d.E(1:operating_vars.n_cycle_vector(end));
+    d1.alpha=d.alpha(1:operating_vars.n_cycle_vector(end));
+    d1.hM=d.hM(1:operating_vars.n_cycle_vector(end));
+    d1.hT=d.hT(1:operating_vars.n_cycle_vector(end));
+  
     simulation_output.states=y.states;
     simulation_output.measurements=measurements;
     simulation_output.measurements_nf=measurements_nf;
     simulation_output.disturbances=d1;
-    simulation_output.operating_vars=manipulated_vars;
+    simulation_output.operating_vars=operating_vars;
     simulation_output.x_estim=x_estim;
-    simulation_output.feed.c_slurry_nominal_vector=cryst_output.conc_slurry_vector;
+    simulation_output.feed.c_slurry_nom_vector=cryst_output.conc_slurry_vector;
     simulation_output.cakes_proc_times=y.processing_times;
     simulation_output.final_content=y.final_content;
-    simulation_output.active_stations=d.stations_working(1:manipulated_vars.n_cycle_vector(end),:);
+    simulation_output.active_stations=d.stations_working(1:operating_vars.n_cycle_vector(end),:);
 
     simulation_output.settings.control_mode=control_flag;
     simulation_output.settings.operating_mode=disturbance_flag;
     simulation_output.settings.control_interval=control_interval;
     simulation_output.settings.sampling_time=sampling_time;
     simulation_output.settings.total_duration=total_duration;
-    simulation_output.settings.cryst_output_nom=cryst_output_nominal;
+    simulation_output.settings.cryst_output_nom.conc_slurry=cryst_output_nominal.conc_slurry;
+    simulation_output.settings.cryst_output_nom.x=cryst_output_nominal.x;
+    simulation_output.settings.cryst_output_nom.CSD_perc=cryst_output_nominal.CSD_perc;
+    simulation_output.settings.cryst_output_nom.T=cryst_output_nominal.T;
     simulation_output.settings.u_nom=u_nominal;
 else
     disp('No cakes discharged: increase simulation duration')
