@@ -1,22 +1,31 @@
-function [u,manipulated_vars] = controller_online(process_time,batch_time,...
-    ports_working,u,u_nominal,measurements,manipulated_vars,x_estim,n_cycle,control_flag)
+function [u,manipulated_vars] = controller_online(process_time,cycle_time,...
+    stations_working,u,u_nominal,cryst_output_nominal,measurements,manipulated_vars,x_estim,n_cycle,control_mode)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Inputs
     %
     % process_time      =   timer started at process onset (s)
-    % batch_time        =   timer re-started at every carousel rotation (s)
-    % ports_working     =   vector [1x4] - for i=1:4:
-    %                       - ports_working(i)=1 if during current cycle port i is processing material;
-    %                       - ports_working(i)=0 if during current cycle port i is empty; 
+    % cycle_time        =   timer re-started at every carousel rotation (s)
+    % stations_working     =   vector [1x4] - for i=1:4:
+    %                       - stations_working(i)=1 if during current cycle station i is processing material;
+    %                       - stations_working(i)=0 if during current cycle station i is empty; 
     % u                 =   vector of manipulated variables during previous control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration (s)
-    %                       - u.V_slurry=fed slurry volume (m3)
-    %                       - u.dP=pressure drop Stations 1-4 (Pa)
-    %                       - u.Tinlet_drying=drying gas temperature Station 5 (K)                      
+    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.V_slurry=fed slurry volume set-point (m3)
+    %                       - u.dP=pressure drop Stations 1-4 set point (Pa)
+    %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                       
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       Same fields of u
+    % cryst_output_nominal  = object containing nominal (i.e., initial) feed
+    %                        conditions. Fields:
+    %                        - cryst_output_nominal.conc_slurry= nominal
+    %                                 slurry concentration in feed (kg/m3)
+    %                        - cryst_output_nominal.x = Crystal size
+    %                                 distribution – particles diameters (m)
+    %                        - cryst_output_nominal.CSD - Volumetric crystal size distribution – percentage
+    %                        - cryst_output_nominal.CSD_perc - Volumetric crystal size distribution – percentage
+    %                        - cryst_output_nominal.T - slurry temperature (= room temperature) (K)  
     % measurements      =   object of process measurements since process onset 
     %                       with the sampling time that has been set in run_carousel.m
     %                       Fields of measurements:
@@ -26,29 +35,29 @@ function [u,manipulated_vars] = controller_online(process_time,batch_time,...
     %                       - measurements.c_slurryAI101 = vector of slurry concentration measured by AI101 (kg/m3)
     %                       - measurements.L_cake_LI101 = vector of height of cakes in Station 1 measured by LI101 (m)
     %                       - measurements.V_slurry_LI101 = vector of slurry volume in Station 1 measured by LI101 (m)
-    %                       - measurements.Tg_top_TI101 = vector of temperatures of drying gas measured by TI101 (K) - inlet
-    %                       - measurements.Tg_bot_TI102 = vector of temperatures of drying gas measured by TI102 (K) - outlet                      
+    %                       - measurements.Tg_in_TI101 = vector of temperatures of drying gas measured by TI101 (K) - inlet
+    %                       - measurements.Tg_out_TI102 = vector of temperatures of drying gas measured by TI102 (K) - outlet                      
     %                       - measurements.Vdryer_FI101 = vector of drying gas flowrate measured by FI101 (m3/s)
     % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
     %                       Fields of manipulated_vars:
     %                       - manipulated_vars.t_vector = control times vector
     %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
     %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of completed carousel cycles
+    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
     %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
     %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
-    % n_cycle           =   cycle counter
-    % control_flag      =   scalar defined in run_carousel.m
+    % n_cycle           =   cycle counter - number of current cycle
+    % control_mode      =   scalar defined in run_carousel.m
     %
     % Outputs           
     % u                 =   vector of manipulated variables for follwing control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration (s)
-    %                       - u.V_slurry=fed slurry volume (m3)
-    %                       - u.dP=pressure drop Stations 1-4 (Pa)
-    %                       - u.Tinlet_drying=drying gas temperature Station 5 (K)   
+    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.V_slurry=fed slurry volume set-point (m3)
+    %                       - u.dP=pressure drop Stations 1-4 set point (Pa)
+    %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)   
     %         -------->     Fields not updated during call to this function
     %                       will retain the value set for the previous control interval
     % manipulated_vars  =   object storing the profiles of the manipulated variables (automatically updated)
@@ -56,22 +65,22 @@ function [u,manipulated_vars] = controller_online(process_time,batch_time,...
     %                       - manipulated_vars.t_vector = control times vector
     %                       - manipulated_vars.dP_vector = u.dP time profile [1 x length(manipulated_vars.t_vector)]
     %                       - manipulated_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(manipulated_vars.t_vector)]
-    %                       - manipulated_vars.n_cycle_vector = list of number of completed carousel cycles
+    %                       - manipulated_vars.n_cycle_vector = list of number of initialized carousel cycles
     %                       - manipulated_vars.t_rot_vector = u.t_rot time profile [1 x length(manipulated_vars.n_cycle_vector)]
     %                       - manipulated_vars.V_slurry_vector = u.V_slurry time profile [1 x length(manipulated_vars.n_cycle_vector)]
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %% Paper simulator
-           
-    %% Paper control
-    if control_flag == 1 && ports_working(4)==1 % Layer 1 for u_nominal.V_slurry = 6e-6
-        if measurements.Tg_bot_TI102(end)<18.7+273.15 || ...
-            measurements.Tg_bot_TI102(end)<=measurements.Tg_bot_TI102(end-2)               
-            u.t_rot=batch_time+1;
+    % note that u.t_rot must always be an integer!
+    
+    if control_mode == 1 && stations_working(4)==1 % Sample closed-loop control - works when Station 4 is working
+        if measurements.Tg_out_TI102(end)<295.3 || ...
+            measurements.Tg_out_TI102(end)<=measurements.Tg_out_TI102(end-2)               
+            u.t_rot=cycle_time+1;
         else % trigger cycle end
-            u.t_rot=batch_time;
+            u.t_rot=cycle_time;
         end
-    else % Layer 0
+    elseif control_mode == 0 || stations_working(4)==0 % open-loop - or if Station 4 is empty
         u.t_rot=u_nominal.t_rot;
     end   
     
@@ -79,4 +88,5 @@ function [u,manipulated_vars] = controller_online(process_time,batch_time,...
    manipulated_vars.t_vector=[manipulated_vars.t_vector process_time];     
    manipulated_vars.dP_vector=[manipulated_vars.dP_vector u.dP];
    manipulated_vars.Tin_drying_vector=[manipulated_vars.Tin_drying_vector u.Tinlet_drying];
+   
 end

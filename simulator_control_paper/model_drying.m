@@ -7,7 +7,7 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
     %   x = states (+additional properties) object
     %   y = measurements vector
     %   n_cycle = cycle number
-    %   pos = port in which filtration is occurring               
+    %   pos = station in which filtration is occurring               
 
     %% update deliq. equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
@@ -115,6 +115,12 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
             p.h_M=ug0*rho_g/p.zeta/47.2e-6/p.a_V/1e5*d.hM(n_batch);
             p.h_T=cp_g*rho_g*ug0/p.a_V/47.2e-6/p.zeta*d.hT(n_batch);
             
+            % the drying model used in this simulator was originally
+            % developed for cakes with multiple volatile and non-volatile
+            % components of the liquid phase.
+            % In this simulator, the number of volatile components is fixed
+            % to 1, and the volumetric fraction of non-volatile components
+            % of the liquid is null in every node of the grid           
             [~,output]=ode15s(@drying_model,[time_steps_simulation(i) time_steps_simulation(i+1)],x0,options,...
                     xx.number_nodes_drying,p.number_volatile_components,epsL_non_vol,...
                     Tin(i),p.cp_gas_components',p.rho_sol,xx.E,ug0,Pprofile,p.MW_air,...
@@ -130,9 +136,7 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
                     (p.number_volatile_components)*xx.number_nodes_drying);
             vol_cont_impurities(i+1,:)=reshape(output(end,end-...
                     (p.number_volatile_components)*xx.number_nodes_drying+1:end),...
-                    xx.number_nodes_drying,p.number_volatile_components)';            
-                      
-            
+                    xx.number_nodes_drying,p.number_volatile_components)';                                              
         end
         S_final=vol_cont_impurities/xx.E;   
         

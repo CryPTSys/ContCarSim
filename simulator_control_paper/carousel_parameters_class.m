@@ -1,7 +1,8 @@
-classdef carousel_parameters_class_control
+classdef carousel_parameters_class
     properties
+        cake_counter
         names_components
-        ports_working
+        stations_working
         cp_gas_components
         integration_interval
         control_interval

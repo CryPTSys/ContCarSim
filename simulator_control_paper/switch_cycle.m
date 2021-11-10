@@ -1,4 +1,4 @@
-function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n_cycle)
+function [x,y]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n_cycle)
         % This function handles the routines to be called at the end of each cycle:
         % -     the first time that some material enters a processing position (1-4), the
         %       measurement vectors for that position is created
@@ -11,15 +11,14 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
         %       occurring in the future will not affect batches that
         %       entered the carousel previously
         
-        
-        
         %% Station 4
         if n_cycle > 3
+
             % measurements
             y.pos4.(['batch_' num2str(n_cycle-3)]).t=0;
             % if some deliquoring occurs
             y.pos4.(['batch_' num2str(n_cycle-3)]).m_filt=0;
-            
+
             % drying
             y.pos4.(['batch_' num2str(n_cycle-3)]).Vdryer=0;            
             y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_gas=zeros(p.number_volatile_components,1);            
@@ -30,6 +29,7 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_bot=x.pos3.T;
             y.pos4.(['batch_' num2str(n_cycle-3)]).Ts_bot=x.pos3.T;
             y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top=x.pos3.T;
+
             
             % feed from position 1, cake properties, filtration and
             % deliquoring variables
@@ -43,6 +43,7 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
         end
         %% Station 3
         if n_cycle > 2
+
             % measurements
             y.pos3.(['batch_' num2str(n_cycle-2)]).t=0;
             y.pos3.(['batch_' num2str(n_cycle-2)]).m_filt=0;
@@ -51,21 +52,20 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             rho_cake=(initial_epsl*p.rho_liq_components+(1-x.pos2.E)*p.rho_sol);
             y.pos3.(['batch_' num2str(n_cycle-2)]).w_EtOH_cake=mean(initial_epsl./rho_cake.*p.rho_liq_components);
 
-            % feed from position 1, cake properties, filtration and
-            % deliquoring variables
             x.pos3=x.pos2;
         end
 
         %% Station 2
         if n_cycle > 1
+
             % measurements
             y.pos2.(['batch_' num2str(n_cycle-1)]).t=0;
             y.pos2.(['batch_' num2str(n_cycle-1)]).m_filt=0;
             y.pos2.(['batch_' num2str(n_cycle-1)]).S=mean(x.pos1.S);
             initial_epsl=x.pos1.E*x.pos1.S;
             rho_cake=(initial_epsl*p.rho_liq_components+(1-x.pos1.E)*p.rho_sol);
-            y.pos2.(['batch_' num2str(n_cycle-1)]).w_EtOH_cake=mean(initial_epsl./rho_cake.*p.rho_liq_components);          
-            
+            y.pos2.(['batch_' num2str(n_cycle-1)]).w_EtOH_cake=mean(initial_epsl./rho_cake.*p.rho_liq_components);   
+  
             % feed from position 1, cake properties, filtration and
             % deliquoring variables
             x.pos2=x.pos1;           
@@ -77,7 +77,6 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             x.pos1.T=cryst_output.T;
             x.pos1.x=cryst_output.x;%*u.CSD_dist;
             x.pos1.CSD=cryst_output.CSD;
-            x.pos1.x_perc=cryst_output.x_perc; 
             x.pos1.CSD_perc=cryst_output.CSD_perc;
             
             % initial filtration states
@@ -87,18 +86,14 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             x.pos1.filtration_finished=0;
             
             % cake and liquid properties from slurry fed at current process time
-            x.pos1.E=0.35.*d.E_dist;    % porosity_function_shape(p.station_diameter,x.pos1.CSD,x.pos1.x,1);           
-%             x.pos1.m0=trapz(x.pos1.x,x.pos1.CSD); 
-%             x.pos1.m1=trapz(x.pos1.x,x.pos1.CSD.*x.pos1.x); 
-%             x.pos1.m2=trapz(x.pos1.x,x.pos1.CSD.*(x.pos1.x.^2)); 
-%             x.pos1.m3=trapz(x.pos1.x,x.pos1.CSD.*(x.pos1.x.^3)); 
-            x.pos1.alpha=2.7e9.*d.alpha_dist;   % sum(p.alpha_CSD(x.pos1.x_perc,x.pos1.E).*x.pos1.CSD_perc);
+            x.pos1.E=0.35.*d.E_dist;    %            
+            x.pos1.alpha=2.7e9.*d.alpha_dist;   % 
             x.pos1.k=1/(x.pos1.alpha*p.rho_sol*(1-x.pos1.E));    
-            x.pos1.a_V=126000;  % 6*x.pos1.m2/x.pos1.m3;
+            x.pos1.a_V=126000;  % 1/m
 
             x.pos1.visc_liq=p.visc_liq_components(x.pos1.T);                        
-            x.pos1.V_slurry_initial=u.V_slurry*d.V_slurry_dist*p.ports_working(1);        % Slurry volume fed at the beginning of the filtration batch [m^3]
-            x.pos1.c_slurry=cryst_output.conc_slurry.*d.c_slurry_dist*p.ports_working(1);
+            x.pos1.V_slurry_initial=u.V_slurry*d.V_slurry_dist*p.stations_working(1);        % Slurry volume fed at the beginning of the filtration batch [m^3]
+            x.pos1.c_slurry=cryst_output.conc_slurry.*d.c_slurry_dist*p.stations_working(1);
             x.pos1.m_solid_initial=x.pos1.V_slurry_initial.*cryst_output.conc_slurry.*d.c_slurry_dist;    % Total solid mass filled into the filter [kg]
             x.pos1.V_solid_initial=x.pos1.m_solid_initial./p.rho_sol;        % Total solid volume filled into the filter [m^3]
             x.pos1.V_liq_initial=x.pos1.V_slurry_initial-x.pos1.V_solid_initial;  % Total liquid volume filled into the filter [m^3]
@@ -106,7 +101,7 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             x.pos1.V_filt_final=x.pos1.V_liq_initial-x.pos1.V_liquid_pores_end_of_filtration;   % volume of filtrate at the end of filtration [m3]
             x.pos1.c=(x.pos1.m_solid_initial)/x.pos1.V_filt_final; % Mass of dry cake deposited per unit volume of filtrate [kg sol/ m3 filtrate liquid]more compact way, but same results as Brigi's
             x.pos1.L_cake=(x.pos1.m_solid_initial/p.rho_sol/(1-x.pos1.E))/p.A; % height of the deposited cake [m]    
-            x.pos1.Pb=sum(p.pb_CSD(x.pos1.x_perc,x.pos1.E).*x.pos1.CSD_perc);
+            x.pos1.Pb=sum(p.pb_CSD(x.pos1.x,x.pos1.E).*x.pos1.CSD_perc);
             x.pos1.V_liquid_pores=x.pos1.V_liquid_pores_end_of_filtration;
             x.pos1.number_nodes_deliq=max(round(x.pos1.L_cake/p.min_length_discr)+1,2);
             x.pos1.number_nodes_drying=x.pos1.number_nodes_deliq;
@@ -115,7 +110,7 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             x.pos1.step_grid_drying=x.pos1.L_cake/x.pos1.number_nodes_drying;
             x.pos1.nodes_drying=linspace(x.pos1.step_grid_drying/2,...
                 x.pos1.L_cake-x.pos1.step_grid_drying/2, x.pos1.number_nodes_drying);
-
+            
             % outputs Station 1 measurements initialization
             y.pos1.(['batch_' num2str(n_cycle)]).t=0;
             y.pos1.(['batch_' num2str(n_cycle)]).m_filt=0;
@@ -133,19 +128,7 @@ function [x,y,measurements]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n
             
         end
 
-        %% Sensors vectors creation
-        if n_cycle == 1
-            measurements.t_meas=0;
-            measurements.m_filt_WI101=0;
-            measurements.P_PI102=1e5;
-            measurements.c_slurry_AI101=250;
-            measurements.L_cake_LI101=0;
-            measurements.V_slurry_LI101=0;            
-            measurements.Tg_top_TI101=round(u.Tinlet_drying,1);
-            measurements.Tg_bot_TI102=round(p.T_room,1);
-            measurements.Vdryer_FI101=0;
-            
-        end                
+          
         
         %% Initializations
         x.m_filt_bias=measurements.m_filt_WI101(end);

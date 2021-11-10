@@ -10,7 +10,7 @@ function [x,y] = model_deliquoring_grad(batch_time,Dt,p,u,x,y,n_batch,pos)
     %   x = states (+additional properties) object
     %   y = measurements vector
     %   n_cycle = cycle number
-    %   pos = port in which filtration is occurring   
+    %   pos = station in which filtration is occurring   
 
     %% update equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;

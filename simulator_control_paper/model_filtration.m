@@ -6,7 +6,7 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
     %   x = states (+additional properties) object
     %   y = measurements vector
     %   n_cycle = cycle number
-    %   pos = port in which filtration is occurring 
+    %   pos = station in which filtration is occurring 
          
     %% Simulation   
     % Initial conditions (creation of local objects with shorter names for conciseness)

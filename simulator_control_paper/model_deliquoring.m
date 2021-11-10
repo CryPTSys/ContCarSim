@@ -1,4 +1,8 @@
 function [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos)
+    % Model used for simulating deliquoring when the cake is shorter than
+    % the grid discretization size
+    % Equations from: Tarleton, Steve, and Richard Wakeman. Solid/liquid separation: equipment selection and process design. Elsevier, 2006.
+
     %%  Inputs list
     %   batch_time - cycle timer
     %   Dt = duration of deliquoring step
@@ -6,15 +10,12 @@ function [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos)
     %   x = states (+additional properties) object
     %   y = measurements vector
     %   n_cycle = cycle number
-    %   pos = port in which filtration is occurring  
+    %   pos = station in which filtration is occurring  
 
     
     %% update equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
-    x.(['pos' num2str(pos)]).S_inf=0.085;% sum(0.155*(1+...
-%         0.031*p.N_cap_CSD(x.(['pos' num2str(pos)]).x_perc,rho_liq,...
-%         x.(['pos' num2str(pos)]).E,u.dP,x.(['pos' num2str(pos)]).L_cake).^...
-%         (-0.49)).*x.(['pos' num2str(pos)]).CSD_perc); 
+    x.(['pos' num2str(pos)]).S_inf=0.085;
     
     %% Deliquoring model calculation - solution obtained through design charts
     % Initial conditions (creation of local objects with shorter names for conciseness)    
