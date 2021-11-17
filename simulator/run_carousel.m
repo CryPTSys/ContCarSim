@@ -13,7 +13,7 @@ disturbance_scenario = 0;  % 0: normal operating conditions; 1: nominal slurry c
 total_duration = 1800; % s
 
 %% set nominal manipulated variables   
-u_nominal.t_rot=30;           % cycle duration (s) 
+u_nominal.t_rot=45;           % cycle duration (s) 
                               % u_nominal.t_rot and u.t_rot MUST ALWAYS BE INTEGERS
 u_nominal.V_slurry=3e-6;      % fed slurry volume (m3) 
 u_nominal.P_compr=10e4;            % gauge pressure compressor (Pa)
