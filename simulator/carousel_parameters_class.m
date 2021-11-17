@@ -7,7 +7,7 @@ classdef carousel_parameters_class
         integration_interval
         control_interval
         V_slurry
-        filtration_sampling_time
+        filtration_sampling_interval
         number_components
         number_volatile_components    
         T_room
@@ -36,7 +36,7 @@ classdef carousel_parameters_class
         cp_air
         cp_s
         min_length_discr
-        drying_sampling_time
+        drying_sampling_interval
         number_nodes
         h_T
     end 

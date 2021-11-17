@@ -14,12 +14,12 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
     t=xx.filtration_time;
     
     % Create filtration time vector accordingly to sampling time, but without exceeding filtration duration                                    
-    t_filt=unique([(p.filtration_sampling_time-round(rem(t,p.filtration_sampling_time),6)+t):p.filtration_sampling_time:Dt+t Dt+t]);
+    t_filt=unique([(p.filtration_sampling_interval-round(rem(t,p.filtration_sampling_interval),6)+t):p.filtration_sampling_interval:Dt+t Dt+t]);
     
     a_filt= xx.visc_liq.*xx.alpha.*xx.c;    % darcy coeff 1
     b_filt= 2*p.A*xx.visc_liq.*p.Rm(pos);        % darcy coeff 2
     c_filt = -(xx.alpha*xx.visc_liq*xx.c*xx.V_filt^2+2*p.A*xx.visc_liq.*p.Rm(pos)*xx.V_filt+...
-        2*p.A^2*u.dP*(t_filt-t));           % darcy coeff 3
+        2*p.A^2*u.P_compr*(t_filt-t));           % darcy coeff 3
     V_filt= (-b_filt+sqrt(b_filt.^2-4.*a_filt.*c_filt))./(2.*a_filt);   % V(t) - filtrate volume [m^3]
     
     % impurity content

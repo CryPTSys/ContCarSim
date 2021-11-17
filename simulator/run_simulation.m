@@ -1,9 +1,9 @@
 function simulation_output = run_simulation(u,...
     cryst_output,disturbance_flag,control_flag,total_duration,...
-    control_interval,sampling_time)     
+    control_interval,sampling_interval)     
 
 %% Check sampling and control times and cycle duration
-    if abs(round(1/sampling_time)-1/sampling_time)>0
+    if abs(round(1/sampling_interval)-1/sampling_interval)>0
         error('Sampling time must be a submultiple of 1')
     end
     if abs(round(control_interval)-control_interval)>0
@@ -28,8 +28,8 @@ function simulation_output = run_simulation(u,...
     p=carousel_parameters_class; % create object storing physical properties and operating conditions
     p.integration_interval=1;
     p.control_interval=control_interval;
-    p.filtration_sampling_time=sampling_time;
-    p.drying_sampling_time=sampling_time;
+    p.filtration_sampling_interval=sampling_interval;
+    p.drying_sampling_interval=sampling_interval;
     p.T_room=cryst_output.T;
     
     % Initialize disturbances vector
@@ -56,7 +56,7 @@ function simulation_output = run_simulation(u,...
     % Initialize object containing manipulated variables profile
     % updated online
     operating_vars.t_vector=[]; % process time vector
-    operating_vars.dP_vector=[];
+    operating_vars.P_compr_vector=[];
     operating_vars.Tin_drying_vector=[];
     % updated at the end of every cycle
     operating_vars.n_cycle_vector=[];
@@ -72,7 +72,8 @@ function simulation_output = run_simulation(u,...
     % measurements
     measurements.t_meas=0;
     measurements.m_filt_WI101=0;
-    measurements.P_PI102=1e5;
+    measurements.P_PI101=u.P_compr;
+    measurements.P_PI102=0;
     measurements.c_slurry_AI101=250;
     measurements.L_cake_LI101=0;
     measurements.V_slurry_LI101=0;            
@@ -83,7 +84,8 @@ function simulation_output = run_simulation(u,...
     % noise-free measurements
     measurements_nf.t_meas=0;
     measurements_nf.m_filt_WI101=0;
-    measurements_nf.P_PI102=1e5;
+    measurements_nf.P_PI101=u.P_compr;
+    measurements_nf.P_PI102=0;
     measurements_nf.c_slurry_AI101=250;
     measurements_nf.L_cake_LI101=0;
     measurements_nf.V_slurry_LI101=0;            
@@ -116,7 +118,7 @@ function simulation_output = run_simulation(u,...
            % call online estimation routines
            x_estim = estimator_online(process_time,cycle_time,...
                p.stations_working,u,measurements,operating_vars,x_estim,...
-               n_cycle,control_flag,p.filtration_sampling_time,...
+               n_cycle,control_flag,p.filtration_sampling_interval,...
                p.control_interval,simulation_step);
            
            % call online control routines and save MVs profiles
@@ -132,7 +134,7 @@ function simulation_output = run_simulation(u,...
            % call end of cycle estimation routines
            x_estim = estimator_cycle_switch(process_time,cycle_time,...
                p.stations_working,u,measurements,operating_vars,x_estim,...
-               n_cycle,control_flag,p.filtration_sampling_time,p.control_interval);
+               n_cycle,control_flag,p.filtration_sampling_interval,p.control_interval);
            
            % calculate ethanol content in discharged cake
            y = final_composition(p,x,y,n_cycle);
@@ -177,9 +179,9 @@ if length(operating_vars.n_cycle_vector)>4
     simulation_output.active_stations=d.stations_working(1:operating_vars.n_cycle_vector(end),:);
 
     simulation_output.settings.control_mode=control_flag;
-    simulation_output.settings.operating_mode=disturbance_flag;
+    simulation_output.settings.disturbance_scenario=disturbance_flag;
     simulation_output.settings.control_interval=control_interval;
-    simulation_output.settings.sampling_time=sampling_time;
+    simulation_output.settings.sampling_interval=sampling_interval;
     simulation_output.settings.total_duration=total_duration;
     simulation_output.settings.cryst_output_nom.conc_slurry=cryst_output_nominal.conc_slurry;
     simulation_output.settings.cryst_output_nom.x=cryst_output_nominal.x;

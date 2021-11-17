@@ -28,9 +28,9 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
         thetaP0=((1-SR0)/(1.08*SR0))^(1/.88)*(1-n_switch)+((1-SR0)/(1.46*SR0))^(1/.48)*n_switch;
         residual_deliq_theta=8-thetaP0; % estimation of deliquoring time for reaching SR=20% using design charts
         visc_liq=p.visc_liq_components(xx.T);
-        residual_deliq=min(Dt,residual_deliq_theta*((xx.k.*(u.dP))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf)))^-1);  % duration of deliquoring in position 4
+        residual_deliq=min(Dt,residual_deliq_theta*((xx.k.*(u.P_compr))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf)))^-1);  % duration of deliquoring in position 4
         Dt=Dt-residual_deliq;
-        u.dP=u.dP;
+        u.P_compr=u.P_compr;
         [x,y]=model_deliquoring_grad(t,residual_deliq,p,u,x,y,n_batch,pos); % deliquoring simulation
         % measurement vectors 
         y.(['pos' num2str(pos)]).(['batch_' num2str(n_batch)]).w_EtOH_gas=...
@@ -63,11 +63,11 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
         initial_liq_conc=p.rho_liq_components;
 
         % Calculations
-        dPgdz=(u.dP-xx.dP_mesh)/xx.L_cake;        
-        Pgin=101325+u.dP-dPgdz*xx.step_grid_drying/2; % pressure first node
-        Pgout=101325-dPgdz*xx.step_grid_drying/2;          % pressure last node
+        P_comprgdz=(u.P_compr-xx.P_compr_mesh)/xx.L_cake;        
+        Pgin=101325+u.P_compr-P_comprgdz*xx.step_grid_drying/2; % pressure first node
+        Pgout=101325-P_comprgdz*xx.step_grid_drying/2;          % pressure last node
         Pprofile=linspace(Pgin,Pgout,xx.number_nodes_drying);
-        ug0=u.dP/(p.visc_gas_phase*(xx.alpha*p.rho_sol*xx.L_cake*(1-xx.E)+p.Rm(pos))); % temperature and saturation dependencies added in mex file        
+        ug0=u.P_compr/(p.visc_gas_phase*(xx.alpha*p.rho_sol*xx.L_cake*(1-xx.E)+p.Rm(pos))); % temperature and saturation dependencies added in mex file        
         epsL_0=S0*xx.E; % liquid phase volumetric fraction in cake
         Tg_0=xx.Tg; % gas temperature profile
         Ts_0=xx.Ts;
@@ -80,7 +80,7 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
             size(vL_0_vol,2),1)]'; % initial state
         
         % Time vector
-        t_drying=unique([0 (p.drying_sampling_time-round(rem(t,p.drying_sampling_time),6)):p.drying_sampling_time:Dt Dt]);   
+        t_drying=unique([0 (p.drying_sampling_interval-round(rem(t,p.drying_sampling_interval),6)):p.drying_sampling_interval:Dt Dt]);   
                 
         % sparsity matrix - consistent with the FVM upwind differencing scheme
         S1=triu(tril(ones(xx.number_nodes_drying)),-1); % lower diagonal

@@ -24,7 +24,7 @@ function [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos)
   
     % Calculations    
     visc_liq=p.visc_liq_components(p.T_room);
-    t_deliq=unique([0 (p.filtration_sampling_time-round(rem(batch_time,p.filtration_sampling_time),6)):p.filtration_sampling_time:Dt Dt]);%linspace(0,Dt,100);
+    t_deliq=unique([0 (p.filtration_sampling_interval-round(rem(batch_time,p.filtration_sampling_interval),6)):p.filtration_sampling_interval:Dt Dt]);%linspace(0,Dt,100);
     
     % if the cake is not saturated at t=0, calculate corresponding ThetaP0
     SR0=(mean(S0)-xx.S_inf)/(1-xx.S_inf);
@@ -39,7 +39,7 @@ function [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos)
     end
     
     % Dimensionless deliquoring time [-]  
-    ThetaP=(t_deliq.*xx.k.*(u.dP))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf))+ThetaP0; 
+    ThetaP=(t_deliq.*xx.k.*(u.P_compr))./(xx.E.*visc_liq*(xx.L_cake.^2).*(1-xx.S_inf))+ThetaP0; 
     
     % Design charts equation
     n_switch=min(max(ThetaP-1.915,0)*100,1);   

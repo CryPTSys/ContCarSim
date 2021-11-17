@@ -34,16 +34,16 @@ function [x,y] = model_deliquoring_grad(batch_time,Dt,p,u,x,y,n_batch,pos)
         
         % Calculations
         visc_liq=p.visc_liq_components(298); % modify room temperature if needed
-        dPgdz=(u.dP-xx.dP_mesh)/xx.L_cake;
+        P_comprgdz=(u.P_compr-xx.P_compr_mesh)/xx.L_cake;
         % pressure filtration
-        Pgin=101325+u.dP-dPgdz*xx.step_grid_deliq/2; % pressure first node
-        Pgout=101325-dPgdz*xx.step_grid_deliq/2;            % pressure last node
+        Pgin=101325+u.P_compr-P_comprgdz*xx.step_grid_deliq/2; % pressure first node
+        Pgout=101325-P_comprgdz*xx.step_grid_deliq/2;            % pressure last node
         Pg=linspace(Pgin,Pgout,xx.number_nodes_deliq);
         SR0=(S0-xx.S_inf)/(1-xx.S_inf); 
         scaling=1/(xx.step_grid_deliq^4); % an additional scaling factor for pressures
         
         % time vector
-        t_deliq=unique([0 (p.filtration_sampling_time-round(rem(t,p.filtration_sampling_time),6)):p.filtration_sampling_time:Dt Dt]);
+        t_deliq=unique([0 (p.filtration_sampling_interval-round(rem(t,p.filtration_sampling_interval),6)):p.filtration_sampling_interval:Dt Dt]);
         theta_interval=t_deliq*xx.k*xx.Pb*scaling/(visc_liq*xx.L_cake^2*xx.E*(1-xx.S_inf)); % dimensionless time
         
         % Sparsity matrix - consistent with the FVM upwind differencing scheme

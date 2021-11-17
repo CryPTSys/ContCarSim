@@ -13,7 +13,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       Fields of u:
     %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
-    %                       - u.dP=pressure drop Stations 1-4 set point (Pa)
+    %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                   
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       or updated later. Same fields of u
@@ -21,11 +21,12 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                        conditions. Fields
     %                       - cryst_output_nominal
     % measurements      =   object of process measurements since process onset 
-    %                       with the sampling time that has been set in run_carousel.m
+    %                       with the sampling interval that has been set in run_carousel.m
     %                       Fields of measurements:
-    %                       - measurements.t_meas = vector of sampling times (s)
+    %                       - measurements.t_meas = vector of sampling intervals (s)
     %                       - measurements.m_filt_WI101 = vector of filtrate mass measured by WI101 (kg)
-    %                       - measurements.P_PI102 = vector of pressure measured by PI102 (Pa)
+    %                       - measurements.P_PI101 = vector of pressure measured by PI101 - gauge (Pa)
+    %                       - measurements.P_PI102 = vector of pressure measured by PI102 - gauge (Pa)
     %                       - measurements.c_slurry_AI101 = vector of slurry concentration measured by AI101 (kg/m3)
     %                       - measurements.L_cake_LI101 = vector of height of cakes in Station 1 measured by LI101 (m)
     %                       - measurements.V_slurry_LI101 = vector of slurry volume in Station 1 measured by LI101 (m)
@@ -35,7 +36,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
     %                       Fields of operating_vars:
     %                       - operating_vars.t_vector = control times vector
-    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
     %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
@@ -50,7 +51,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       Fields of u:
     %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
-    %                       - u.dP=pressure drop Stations 1-4 set point (Pa)
+    %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)   
     %         -------->     Fields not updated during call to this function
     %                       will retain the value set for the previous control interval
@@ -59,7 +60,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)
     %                       Fields of operating_vars:
     %                       - operating_vars.t_vector = control times vector
-    %                       - operating_vars.dP_vector = u.dP time profile [1 x length(operating_vars.t_vector)]
+    %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
     %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
