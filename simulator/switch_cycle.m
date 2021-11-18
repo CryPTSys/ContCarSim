@@ -1,4 +1,5 @@
-function [x,y]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n_cycle)
+function [x,y,measurements,measurements_nf,operating_vars]=switch_cycle(t,cryst_output,p,d,u,...
+                x,y,measurements,measurements_nf,operating_vars,n_cycle)
         % This function handles the routines to be called at the end of each cycle:
         % -     the first time that some material enters a processing position (1-4), the
         %       measurement vectors for that position is created
@@ -11,6 +12,40 @@ function [x,y]=switch_cycle(~,cryst_output,p,d,u,x,y,measurements,n_cycle)
         %       occurring in the future will not affect batches that
         %       entered the carousel previously
         
+        %% Add sensors readings and operating variable profiles during carousel rotation and mesh cleaning
+        if t>0  
+        % measurements
+        sampling_times=measurements.t_meas(end):p.filtration_sampling_interval:t;
+        measurements.t_meas=[measurements.t_meas sampling_times];
+        measurements.m_filt_WI101=[measurements.m_filt_WI101 measurements.m_filt_WI101(end)*ones(1,length(sampling_times))+randn(1,length(sampling_times))*0.00005];
+        measurements.P_PI101=[measurements.P_PI101 u.P_compr(end)*ones(1,length(sampling_times))];
+        measurements.P_PI102=[measurements.P_PI102 0*ones(1,length(sampling_times))];
+        measurements.c_slurry_AI101=[measurements.c_slurry_AI101 0*ones(1,length(sampling_times))];
+        measurements.L_cake_LI101=[measurements.L_cake_LI101 0*ones(1,length(sampling_times))];
+        measurements.V_slurry_LI101=[measurements.V_slurry_LI101 0*ones(1,length(sampling_times))];        
+        measurements.Tg_in_TI101=[measurements.Tg_in_TI101 round(u.Tinlet_drying,1)*ones(1,length(sampling_times))];
+        measurements.Tg_out_TI102=[measurements.Tg_out_TI102 round(p.T_room,1)*ones(1,length(sampling_times))];
+        measurements.Vdryer_FI101=[measurements.Vdryer_FI101 0*ones(1,length(sampling_times))];
+% 
+        % noise-free measurements
+        measurements_nf.t_meas=[measurements_nf.t_meas sampling_times];
+        measurements_nf.m_filt_WI101=[measurements_nf.m_filt_WI101 measurements_nf.m_filt_WI101(end)*ones(1,length(sampling_times))];
+        measurements_nf.P_PI101=[measurements_nf.P_PI101 u.P_compr(end)*ones(1,length(sampling_times))];
+        measurements_nf.P_PI102=[measurements_nf.P_PI102 0*ones(1,length(sampling_times))];
+        measurements_nf.c_slurry_AI101=[measurements_nf.c_slurry_AI101 0*ones(1,length(sampling_times))];
+        measurements_nf.L_cake_LI101=[measurements_nf.L_cake_LI101 0*ones(1,length(sampling_times))];
+        measurements_nf.V_slurry_LI101=[measurements_nf.V_slurry_LI101 0*ones(1,length(sampling_times))];        
+        measurements_nf.Tg_in_TI101=[measurements_nf.Tg_in_TI101 round(u.Tinlet_drying,1)];
+        measurements_nf.Tg_out_TI102=[measurements_nf.Tg_out_TI102 round(p.T_room,1)];
+        measurements_nf.Vdryer_FI101=[measurements_nf.Vdryer_FI101 0];
+        
+        % operating variables
+            sampling_times_control=operating_vars.t_vector(end):p.control_interval:t;
+            operating_vars.t_vector=[operating_vars.t_vector sampling_times_control];     
+            operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr*ones(1,length(sampling_times_control))];
+            operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying*ones(1,length(sampling_times_control))];
+
+        end
         %% Station 4
         if n_cycle > 3
 

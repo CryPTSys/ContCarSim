@@ -1,6 +1,6 @@
 function simulation_output = run_simulation(u,...
     cryst_output,disturbance_flag,control_flag,total_duration,...
-    control_interval,sampling_interval)     
+    control_interval,sampling_interval,inter_cycle_Dt,mesh_clean_Dt)     
 
 %% Check sampling and control times and cycle duration
     if abs(round(1/sampling_interval)-1/sampling_interval)>0
@@ -74,7 +74,7 @@ function simulation_output = run_simulation(u,...
     measurements.m_filt_WI101=0;
     measurements.P_PI101=u.P_compr;
     measurements.P_PI102=0;
-    measurements.c_slurry_AI101=250;
+    measurements.c_slurry_AI101=cryst_output.conc_slurry;
     measurements.L_cake_LI101=0;
     measurements.V_slurry_LI101=0;            
     measurements.Tg_in_TI101=round(u.Tinlet_drying,1);
@@ -129,6 +129,8 @@ function simulation_output = run_simulation(u,...
                n_cycle,control_flag);
            end
            
+           end_cycle_flag=0;
+           
         else % rotation                      
            
            % call end of cycle estimation routines
@@ -151,44 +153,75 @@ function simulation_output = run_simulation(u,...
            
            % call disturbance function
            [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_flag);
+            
+           if process_time > 0
+               if sum(p.stations_working == [1 0 0 0])==4
+                   process_time=process_time+mesh_clean_Dt;
+               end
+               process_time=process_time+inter_cycle_Dt;               
+           end
 
            % call switch cycle routine
-           [x,y]=switch_cycle(process_time,cryst_output_nominal,p,d,u,x,y,measurements,n_cycle);
+           [x,y,measurements,measurements_nf]=switch_cycle(process_time,...
+               cryst_output_nominal,p,d,u,x,y,measurements,measurements_nf,...
+               operating_vars,n_cycle);
+           
+           end_cycle_flag=1;
        end
     end
+    
+    %% Prepare output object
+    if length(operating_vars.n_cycle_vector)>4
+        d1.resistances=d.resistances(1:operating_vars.n_cycle_vector(end),:);
+        d1.c_slurry=d.c_slurry(1:operating_vars.n_cycle_vector(end));
+        d1.V_slurry=d.V_slurry(1:operating_vars.n_cycle_vector(end));
+        d1.E=d.E(1:operating_vars.n_cycle_vector(end));
+        d1.alpha=d.alpha(1:operating_vars.n_cycle_vector(end));
+        d1.hM=d.hM(1:operating_vars.n_cycle_vector(end));
+        d1.hT=d.hT(1:operating_vars.n_cycle_vector(end));
 
-%% Prepare output object
-if length(operating_vars.n_cycle_vector)>4
-    d1.resistances=d.resistances(1:operating_vars.n_cycle_vector(end),:);
-    d1.c_slurry=d.c_slurry(1:operating_vars.n_cycle_vector(end));
-    d1.V_slurry=d.V_slurry(1:operating_vars.n_cycle_vector(end));
-    d1.E=d.E(1:operating_vars.n_cycle_vector(end));
-    d1.alpha=d.alpha(1:operating_vars.n_cycle_vector(end));
-    d1.hM=d.hM(1:operating_vars.n_cycle_vector(end));
-    d1.hT=d.hT(1:operating_vars.n_cycle_vector(end));
-  
-    simulation_output.states=y.states;
-    simulation_output.measurements=measurements;
-    simulation_output.measurements_nf=measurements_nf;
-    simulation_output.disturbances=d1;
-    simulation_output.operating_vars=operating_vars;
-    simulation_output.x_estim=x_estim;
-    simulation_output.feed.c_slurry_nom_vector=cryst_output.conc_slurry_vector;
-    simulation_output.cakes_proc_times=y.processing_times;
-    simulation_output.final_content=y.final_content;
-    simulation_output.active_stations=d.stations_working(1:operating_vars.n_cycle_vector(end),:);
+        simulation_output.states=y.states;
+        simulation_output.measurements=measurements;
+        simulation_output.measurements_nf=measurements_nf;
+        simulation_output.disturbances=d1;
+        if length(operating_vars.t_rot_vector)<length(operating_vars.n_cycle_vector)
+            operating_vars.t_rot_vector(end+1)=cycle_time;
+        end
+        simulation_output.operating_vars=operating_vars;
+        simulation_output.x_estim=x_estim;
+        simulation_output.feed.c_slurry_nom_vector=cryst_output.conc_slurry_vector;
+        simulation_output.cakes_proc_times=y.processing_times;
+        simulation_output.final_content=y.final_content;
+        simulation_output.active_stations=d.stations_working(1:operating_vars.n_cycle_vector(end),:);
+        
+        % throughput calculation
+        slurry_volumes=simulation_output.operating_vars.V_slurry_vector.*simulation_output.disturbances.V_slurry;
+        null_volumes=(slurry_volumes==0);
+        slurry_volumes(null_volumes)=[];
+        slurry_volumes=slurry_volumes(1:length(y.final_content));
+        slurry_concs=simulation_output.feed.c_slurry_nom_vector.*simulation_output.disturbances.c_slurry;
+        slurry_concs(null_volumes)=[];
+        slurry_concs=slurry_concs(1:length(y.final_content));
+        cakes_mass=slurry_concs.*slurry_volumes;              
+        acceptable_cakes=y.final_content<=0.005;
+        throughput=sum(cakes_mass(acceptable_cakes));
+        simulation_output.throughput=throughput;
+        
+        % include input setting in output object
+        simulation_output.settings.control_mode=control_flag;
+        simulation_output.settings.disturbance_scenario=disturbance_flag;
+        simulation_output.settings.control_interval=control_interval;
+        simulation_output.settings.sampling_interval=sampling_interval;
+        simulation_output.settings.total_duration=total_duration;
+        simulation_output.settings.cryst_output_nom.conc_slurry=cryst_output_nominal.conc_slurry;
+        simulation_output.settings.cryst_output_nom.x=cryst_output_nominal.x;
+        simulation_output.settings.cryst_output_nom.CSD_perc=cryst_output_nominal.CSD_perc;
+        simulation_output.settings.cryst_output_nom.T=cryst_output_nominal.T;
+        simulation_output.settings.u_nom=u_nominal;
+        simulation_output.settings.inter_cycle_Dt=inter_cycle_Dt;
+        simulation_output.settings.mesh_clean_Dt=mesh_clean_Dt;
 
-    simulation_output.settings.control_mode=control_flag;
-    simulation_output.settings.disturbance_scenario=disturbance_flag;
-    simulation_output.settings.control_interval=control_interval;
-    simulation_output.settings.sampling_interval=sampling_interval;
-    simulation_output.settings.total_duration=total_duration;
-    simulation_output.settings.cryst_output_nom.conc_slurry=cryst_output_nominal.conc_slurry;
-    simulation_output.settings.cryst_output_nom.x=cryst_output_nominal.x;
-    simulation_output.settings.cryst_output_nom.CSD_perc=cryst_output_nominal.CSD_perc;
-    simulation_output.settings.cryst_output_nom.T=cryst_output_nominal.T;
-    simulation_output.settings.u_nom=u_nominal;
-else
-    disp('No cakes discharged: increase simulation duration')
-    simulation_output='';
-end
+    else
+        disp('No cakes discharged: increase simulation duration')
+        simulation_output='';
+    end

@@ -31,10 +31,8 @@ function y = final_composition(p,x,y,n_cycle)
             y.states.station4.(['cake_' num2str(y.cake_counter(4))]).S=y.pos4.(['batch_' num2str(n_cycle-3)]).S;
             y.states.station4.(['cake_' num2str(y.cake_counter(4))]).w_EtOH_cake=y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_cake;
             y.states.station4.(['cake_' num2str(y.cake_counter(4))]).Tg_top=y.pos4.(['batch_' num2str(n_cycle-3)]).Tg_top;
-            y.final_content(end+1)=...
-                y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_cake(end); 
+            y.final_content(end+1)=y.pos4.(['batch_' num2str(n_cycle-3)]).w_EtOH_cake(end); 
             y.processing_times.(['cake_' num2str(y.cake_counter(4))])=y.sequence.(['batch_' num2str(n_cycle-3)]);
-
         end
     end    
 end
