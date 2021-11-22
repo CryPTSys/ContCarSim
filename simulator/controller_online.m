@@ -58,7 +58,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
-    %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)   
+    %                       - u.Tinlet_drying=drying gas temperature Station 4 set-point (K)   
     %         -------->     Fields not updated during call to this function
     %                       will retain the value set for the previous control interval
     % operating_vars  =   object storing the profiles of the manipulated variables (automatically updated)

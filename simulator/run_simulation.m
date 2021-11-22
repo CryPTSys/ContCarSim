@@ -185,7 +185,7 @@ function simulation_output = run_simulation(u,...
         simulation_output.measurements_nf=measurements_nf;
         simulation_output.disturbances=d1;
         if length(operating_vars.t_rot_vector)<length(operating_vars.n_cycle_vector)
-            operating_vars.t_rot_vector(end+1)=cycle_time;
+            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_rot_vector(end+1)=cycle_time;
         end
         simulation_output.operating_vars=operating_vars;
         simulation_output.x_estim=x_estim;
@@ -204,7 +204,7 @@ function simulation_output = run_simulation(u,...
         slurry_concs=slurry_concs(1:length(y.final_content));
         cakes_mass=slurry_concs.*slurry_volumes;              
         acceptable_cakes=y.final_content<=0.005;
-        throughput=sum(cakes_mass(acceptable_cakes));
+        throughput=sum(cakes_mass(acceptable_cakes)); % kg
         simulation_output.throughput=throughput;
         
         % include input setting in output object
@@ -222,6 +222,6 @@ function simulation_output = run_simulation(u,...
         simulation_output.settings.mesh_clean_Dt=mesh_clean_Dt;
 
     else
-        disp('No cakes discharged: increase simulation duration')
+        warning('No cakes discharged: increase simulation duration')
         simulation_output='';
     end

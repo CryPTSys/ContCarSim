@@ -52,7 +52,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
-    %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)   
+    %                       - u.Tinlet_drying=drying gas temperature Station 4 set-point (K)   
     %         -------->     Fields not updated during call to this function
     %                       will retain the value set for the previous control interval
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m

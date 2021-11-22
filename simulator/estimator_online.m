@@ -16,7 +16,7 @@ function x_estim = estimator_online(process_time,cycle_time,...
     %                       - u.t_rot=cycle duration (s)
     %                       - u.V_slurry=fed slurry volume (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
-    %                       - u.Tinlet_drying=drying gas temperature Station 5 (K)                      
+    %                       - u.Tinlet_drying=drying gas temperature Station 4 (K)                      
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       Same fields of u
     % measurements      =   object of process measurements since process onset 
