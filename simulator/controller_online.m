@@ -74,9 +74,9 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %% Paper simulator
     % note that u.t_rot must always be an integer!
     
-    if control_mode == 1 && stations_working(4)==1 % Sample closed-loop control - works when Station 4 is working
+    if control_mode == 1 && stations_working(4)==1 % Sample closed-loop control - works when Station 4 is working; control_interval =1, sampling_interval =0.1;
         if measurements.Tg_out_TI102(end)<295.3 || ...
-            measurements.Tg_out_TI102(end)<=measurements.Tg_out_TI102(end-2)               
+            measurements.Tg_out_TI102(end)<=measurements.Tg_out_TI102(end-10)               
             u.t_rot=cycle_time+1;
         else % trigger cycle end
             u.t_rot=cycle_time;

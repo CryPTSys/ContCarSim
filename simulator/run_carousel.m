@@ -9,7 +9,7 @@ control_mode= 1; % variable passed to controller.m function, useful to test mult
                     % implemented control strategies:
                     % 0: open-loop
                     % 1: control strategy #3 in companion paper; example of end-point controller on temperature (works with u_nominal.V_slurry=3e-6) 
-disturbance_scenario = 2;  % 0: normal operating conditions; 1: nominal slurry concentration ramp; 2: cake resistance step
+disturbance_scenario = 1;  % 0: normal operating conditions; 1: nominal slurry concentration ramp; 2: cake resistance step
 total_duration = 1800; % s
 
 %% set nominal manipulated variables   
