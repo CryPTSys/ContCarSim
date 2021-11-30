@@ -32,13 +32,15 @@ function simulation_output = run_simulation(u,...
     p.drying_sampling_interval=sampling_interval;
     p.T_room=cryst_output.T;
     
-    % Initialize disturbances vector
+    % Initialize parametric disturbances 
+    % will be reassigned at the onset of every cycle
     d.V_slurry_dist=1; 
     d.c_slurry_dist=1; 
     d.E_dist=1; 
     d.alpha_dist=1;     
 
-    % initialize disturbances profiles
+    % Create disturbances profiles
+    % values that disturbances will assume cycle after cycle
     d.c_slurry=1+randn(1,1000)*0.02; 
     d.V_slurry=1+randn(1,1000)*0.02;  
     d.E=1+randn(1,1000)*0.02; 
@@ -53,12 +55,14 @@ function simulation_output = run_simulation(u,...
     p.min_length_discr=3e-4;   % grid spacing for deliquoring and drying
     p = carousel_parameters(p);     
     
-    % Initialize object containing manipulated variables profile
-    % updated online
+    % Initialize object containing operating variables profile
+    
+    % operating variables stored at every control interval
     operating_vars.t_vector=[]; % process time vector
     operating_vars.P_compr_vector=[];
     operating_vars.Tin_drying_vector=[];
-    % updated at the end of every cycle
+    
+    % operating variables stored only at the end of a cycle
     operating_vars.n_cycle_vector=[];
     operating_vars.t_rot_vector=[];  % rotation time vector
     operating_vars.V_slurry_vector=[]; % fed slurry vector
@@ -69,7 +73,8 @@ function simulation_output = run_simulation(u,...
     cycle_time = 0;    
    
     %% Sensors object creation
-    % measurements
+    % initialized to the value they assume at process onset
+    % measurements 
     measurements.t_meas=0;
     measurements.m_filt_WI101=0;
     measurements.P_PI101=u.P_compr;
@@ -204,8 +209,8 @@ function simulation_output = run_simulation(u,...
         slurry_concs=slurry_concs(1:length(y.final_content));
         cakes_mass=slurry_concs.*slurry_volumes;              
         acceptable_cakes=y.final_content<=0.005;
-        throughput=sum(cakes_mass(acceptable_cakes)); % kg
-        simulation_output.throughput=throughput;
+        total_production=sum(cakes_mass(acceptable_cakes)); % kg
+        simulation_output.total_production=total_production;
         
         % include input setting in output object
         simulation_output.settings.control_mode=control_flag;
