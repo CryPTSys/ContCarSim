@@ -13,8 +13,8 @@ disturbance_scenario = 1;  % 0: normal operating conditions; 1: nominal slurry c
 total_duration = 1800; % s
 
 %% set nominal manipulated variables   
-u_nominal.t_rot=45;           % cycle duration (s) 
-                              % u_nominal.t_rot and u.t_rot MUST ALWAYS BE INTEGERS
+u_nominal.t_cycle=45;           % cycle duration (s) 
+                              % u_nominal.t_cycle and u.t_cycle MUST ALWAYS BE INTEGERS
 u_nominal.V_slurry=3e-6;      % fed slurry volume (m3) 
 u_nominal.P_compr=10e4;            % gauge pressure compressor (Pa)
 u_nominal.Tinlet_drying=50+273.15;      % drying gas temperature (K) 

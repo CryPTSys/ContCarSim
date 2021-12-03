@@ -9,7 +9,7 @@ function simulation_output = run_simulation(u,...
     if abs(round(control_interval)-control_interval)>0
         error('Control interval must be a multiple of 1')
     end
-    if abs(round(u.t_rot)-u.t_rot)>0
+    if abs(round(u.t_cycle)-u.t_cycle)>0
         error('Cycle duration must be an integer')
     end
 
@@ -64,7 +64,7 @@ function simulation_output = run_simulation(u,...
     
     % operating variables stored only at the end of a cycle
     operating_vars.n_cycle_vector=[];
-    operating_vars.t_rot_vector=[];  % rotation time vector
+    operating_vars.t_cycle_vector=[];  % rotation time vector
     operating_vars.V_slurry_vector=[]; % fed slurry vector
     
     % time variables initialization
@@ -108,10 +108,10 @@ function simulation_output = run_simulation(u,...
     %% Simulation
     while process_time <= total_duration 
         
-        if cycle_time < u.t_rot && n_cycle > 0   % simulate a step of process operation
+        if cycle_time < u.t_cycle && n_cycle > 0   % simulate a step of process operation
             
            % duration of the next simulation step
-           simulation_step = min(1, u.t_rot - cycle_time); 
+           simulation_step = min(1, u.t_cycle - cycle_time); 
            
            % simulation
            [x,y,measurements,measurements_nf]=carousel_simulator(cycle_time,simulation_step,p,d,u,x,y,measurements,measurements_nf,n_cycle);     
@@ -125,7 +125,7 @@ function simulation_output = run_simulation(u,...
                p.stations_working,u,measurements,operating_vars,x_estim,...
                n_cycle,control_flag,p.filtration_sampling_interval,...
                p.control_interval,simulation_step);
-           
+
            % call online control routines and save MVs profiles
            if ceil(cycle_time/p.control_interval)== cycle_time/p.control_interval         
                % other control strategies
@@ -133,7 +133,7 @@ function simulation_output = run_simulation(u,...
                p.stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
                n_cycle,control_flag);
            end
-           
+
            end_cycle_flag=0;
            
         else % rotation                      
@@ -189,8 +189,8 @@ function simulation_output = run_simulation(u,...
         simulation_output.measurements=measurements;
         simulation_output.measurements_nf=measurements_nf;
         simulation_output.disturbances=d1;
-        if length(operating_vars.t_rot_vector)<length(operating_vars.n_cycle_vector)
-            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_rot_vector(end+1)=cycle_time;
+        if length(operating_vars.t_cycle_vector)<length(operating_vars.n_cycle_vector)
+            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_cycle_vector(end+1)=cycle_time;
         end
         simulation_output.operating_vars=operating_vars;
         simulation_output.x_estim=x_estim;

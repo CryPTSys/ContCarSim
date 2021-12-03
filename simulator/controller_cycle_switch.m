@@ -11,7 +11,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       - stations_working(i)=0 if station i was empty during cycle that just finished; 
     % u                 =   vector of manipulated variables during previous control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.t_cycle=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                   
@@ -39,7 +39,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
@@ -49,7 +49,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     % Outputs           
     % u                 =   vector of manipulated variables for following control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.t_cycle=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 4 set-point (K)   
@@ -63,13 +63,13 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         
     
     %% Paper simulator
-    % note that u.t_rot must always be an integer
+    % note that u.t_cycle must always be an integer
     u.V_slurry=u_nominal.V_slurry;  % set up control law
 
     %% do not modify part below
@@ -81,7 +81,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     operating_vars.n_cycle_vector=[operating_vars.n_cycle_vector n_cycle];         
     operating_vars.V_slurry_vector=[operating_vars.V_slurry_vector u.V_slurry];
     if n_cycle > 1
-        operating_vars.t_rot_vector=[operating_vars.t_rot_vector u.t_rot];
+        operating_vars.t_cycle_vector=[operating_vars.t_cycle_vector u.t_cycle];
     end
 
 end

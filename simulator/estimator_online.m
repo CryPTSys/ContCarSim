@@ -13,7 +13,7 @@ function x_estim = estimator_online(process_time,cycle_time,...
     %                       - stations_working(i)=0 if during current cycle station i is empty; 
     % u                 =   vector of manipulated variables during previous control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration (s)
+    %                       - u.t_cycle=cycle duration (s)
     %                       - u.V_slurry=fed slurry volume (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 4 (K)                      
@@ -38,7 +38,7 @@ function x_estim = estimator_online(process_time,cycle_time,...
     %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of completed carousel cycles
-    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m

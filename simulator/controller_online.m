@@ -11,7 +11,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - stations_working(i)=0 if during current cycle station i is empty; 
     % u                 =   vector of manipulated variables during previous control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.t_cycle=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                       
@@ -45,7 +45,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
     %                       Fields follow the structure defined in run_carousel.m
@@ -55,7 +55,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     % Outputs           
     % u                 =   vector of manipulated variables for follwing control interval
     %                       Fields of u:
-    %                       - u.t_rot=cycle duration set-point (s)    MUST BE AN INTEGER
+    %                       - u.t_cycle=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)
     %                       - u.P_compr= gauge pressure provided by compressor P101 (Pa)
     %                       - u.Tinlet_drying=drying gas temperature Station 4 set-point (K)   
@@ -67,22 +67,22 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - operating_vars.P_compr_vector = u.P_compr time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.Tin_drying_vector = u.Tinlet_drying time profile [1 x length(operating_vars.t_vector)]
     %                       - operating_vars.n_cycle_vector = list of number of initialized carousel cycles
-    %                       - operating_vars.t_rot_vector = u.t_rot time profile [1 x length(operating_vars.n_cycle_vector)]
+    %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %% Paper simulator
-    % note that u.t_rot must always be an integer!
+    % note that u.t_cycle must always be an integer!
     
     if control_mode == 1 && stations_working(4)==1 % Sample closed-loop control - works when Station 4 is working; control_interval =1, sampling_interval =0.1;
         if measurements.Tg_out_TI102(end)<295.3 || ...
             measurements.Tg_out_TI102(end)<=measurements.Tg_out_TI102(end-10)               
-            u.t_rot=cycle_time+1;
+            u.t_cycle=cycle_time+1;
         else % trigger cycle end
-            u.t_rot=cycle_time;
+            u.t_cycle=cycle_time;
         end
     elseif control_mode == 0 || stations_working(4)==0 % open-loop - or if Station 4 is empty
-        u.t_rot=u_nominal.t_rot;
+        u.t_cycle=u_nominal.t_cycle;
     end   
    %% do not modify part below
    % Store manipulated variables profile
@@ -90,4 +90,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
    operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr];
    operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying];
    
+   if abs(round(u.t_cycle)-u.t_cycle)>0
+       error('u.t_cycle must be an integer!')
+   end
 end
