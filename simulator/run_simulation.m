@@ -1,5 +1,5 @@
 function simulation_output = run_simulation(u,...
-    cryst_output,disturbance_flag,control_flag,total_duration,...
+    cryst_output,disturbance_mode,control_mode,total_duration,...
     control_interval,sampling_interval,inter_cycle_Dt,mesh_clean_Dt)     
 
 %% Check sampling and control times and cycle duration
@@ -123,26 +123,24 @@ function simulation_output = run_simulation(u,...
            % call online estimation routines
            x_estim = estimator_online(process_time,cycle_time,...
                p.stations_working,u,measurements,operating_vars,x_estim,...
-               n_cycle,control_flag,p.filtration_sampling_interval,...
+               n_cycle,control_mode,p.filtration_sampling_interval,...
                p.control_interval,simulation_step);
 
            % call online control routines and save MVs profiles
            if ceil(cycle_time/p.control_interval)== cycle_time/p.control_interval         
-               % other control strategies
                [u,operating_vars] = controller_online(process_time,cycle_time,...
                p.stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
-               n_cycle,control_flag);
+               n_cycle,control_mode);
            end
 
-           end_cycle_flag=0;
            
         else % rotation                      
            
            % call end of cycle estimation routines
            x_estim = estimator_cycle_switch(process_time,cycle_time,...
                p.stations_working,u,measurements,operating_vars,x_estim,...
-               n_cycle,control_flag,p.filtration_sampling_interval,p.control_interval);
-           
+               n_cycle,control_mode,p.filtration_sampling_interval,p.control_interval);
+
            % calculate ethanol content in discharged cake
            y = final_composition(p,x,y,n_cycle);
            
@@ -150,15 +148,15 @@ function simulation_output = run_simulation(u,...
            cycle_time = 0;
            n_cycle = n_cycle+1;
            p.stations_working = d.stations_working(n_cycle,:);
-           
+
            % call end of cycle control routines and save MVs profiles
            [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cycle_time,...
                p.stations_working,u,u_nominal,cryst_output_nominal,measurements,...
-               operating_vars,x_estim,n_cycle,control_flag);
-           
+               operating_vars,x_estim,n_cycle,control_mode);
+
            % call disturbance function
-           [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_flag);
-            
+           [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_mode);
+
            if process_time > 0
                if sum(p.stations_working == [1 0 0 0])==4
                    process_time=process_time+mesh_clean_Dt;
@@ -170,8 +168,7 @@ function simulation_output = run_simulation(u,...
            [x,y,measurements,measurements_nf]=switch_cycle(process_time,...
                cryst_output_nominal,p,d,u,x,y,measurements,measurements_nf,...
                operating_vars,n_cycle);
-           
-           end_cycle_flag=1;
+
        end
     end
     
@@ -213,8 +210,8 @@ function simulation_output = run_simulation(u,...
         simulation_output.total_production=total_production;
         
         % include input setting in output object
-        simulation_output.settings.control_mode=control_flag;
-        simulation_output.settings.disturbance_scenario=disturbance_flag;
+        simulation_output.settings.control_mode=control_mode;
+        simulation_output.settings.disturbance_scenario=disturbance_mode;
         simulation_output.settings.control_interval=control_interval;
         simulation_output.settings.sampling_interval=sampling_interval;
         simulation_output.settings.total_duration=total_duration;

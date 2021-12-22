@@ -35,15 +35,15 @@ function [x,y,measurements,measurements_nf,operating_vars]=switch_cycle(t,cryst_
         measurements_nf.c_slurry_AI101=[measurements_nf.c_slurry_AI101 0*ones(1,length(sampling_times))];
         measurements_nf.L_cake_LI101=[measurements_nf.L_cake_LI101 0*ones(1,length(sampling_times))];
         measurements_nf.V_slurry_LI101=[measurements_nf.V_slurry_LI101 0*ones(1,length(sampling_times))];        
-        measurements_nf.Tg_in_TI101=[measurements_nf.Tg_in_TI101 round(u.Tinlet_drying,1)];
-        measurements_nf.Tg_out_TI102=[measurements_nf.Tg_out_TI102 round(p.T_room,1)];
+        measurements_nf.Tg_in_TI101=[measurements_nf.Tg_in_TI101 u.Tinlet_drying];
+        measurements_nf.Tg_out_TI102=[measurements_nf.Tg_out_TI102 p.T_room];
         measurements_nf.Vdryer_FI101=[measurements_nf.Vdryer_FI101 0];
         
         % operating variables
-            sampling_times_control=operating_vars.t_vector(end):p.control_interval:t;
-            operating_vars.t_vector=[operating_vars.t_vector sampling_times_control];     
-            operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr*ones(1,length(sampling_times_control))];
-            operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying*ones(1,length(sampling_times_control))];
+        sampling_times_control=operating_vars.t_vector(end):p.control_interval:t;
+        operating_vars.t_vector=[operating_vars.t_vector sampling_times_control];     
+        operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr*ones(1,length(sampling_times_control))];
+        operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying*ones(1,length(sampling_times_control))];
 
         end
         %% Station 4

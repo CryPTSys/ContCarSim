@@ -48,7 +48,6 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - operating_vars.t_cycle_vector = u.t_cycle time profile [1 x length(operating_vars.n_cycle_vector)]
     %                       - operating_vars.V_slurry_vector = u.V_slurry time profile [1 x length(operating_vars.n_cycle_vector)]
     % x_estim           =   object containing states and parameters estimated by estimator_online.m and estimator_cycle_switch
-    %                       Fields follow the structure defined in run_carousel.m
     % n_cycle           =   cycle counter - number of current cycle
     % control_mode      =   scalar defined in run_carousel.m
     %

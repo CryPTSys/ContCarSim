@@ -52,7 +52,6 @@ function x_estim = estimator_online(process_time,cycle_time,...
     % x_estim           =   Updated after call to this function 
     %                       Object containing states and parameters
     %                       estimated by estimator_online.m and estimator_cycle_switch
-    %                       Fields follow the structure defined in run_carousel.m
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     
     
