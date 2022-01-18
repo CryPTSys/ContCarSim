@@ -173,6 +173,16 @@ function simulation_output = run_simulation(u,...
     end
     
     %% Prepare output object
+    if cycle_time==1
+        operating_vars.n_cycle_vector(end)=[];
+        operating_vars.V_slurry_vector(end)=[];
+        cryst_output.conc_slurry_vector(end)=[];
+    else
+        if cycle_time < u.t_cycle 
+            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_cycle_vector(end+1)=cycle_time;
+        end
+    end
+
     if length(operating_vars.n_cycle_vector)>4
         d1.resistances=d.resistances(1:operating_vars.n_cycle_vector(end),:);
         d1.c_slurry=d.c_slurry(1:operating_vars.n_cycle_vector(end));
@@ -186,9 +196,6 @@ function simulation_output = run_simulation(u,...
         simulation_output.measurements=measurements;
         simulation_output.measurements_nf=measurements_nf;
         simulation_output.disturbances=d1;
-        if length(operating_vars.t_cycle_vector)<length(operating_vars.n_cycle_vector)
-            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_cycle_vector(end+1)=cycle_time;
-        end
         simulation_output.operating_vars=operating_vars;
         simulation_output.x_estim=x_estim;
         simulation_output.feed.c_slurry_nom_vector=cryst_output.conc_slurry_vector;
