@@ -109,28 +109,31 @@ function simulation_output = run_simulation(u,...
     while process_time <= total_duration 
         
         if cycle_time < u.t_cycle && n_cycle > 0   % simulate a step of process operation
-            
-           % duration of the next simulation step
-           simulation_step = min(1, u.t_cycle - cycle_time); 
-           
-           % simulation
-           [x,y,measurements,measurements_nf]=carousel_simulator(cycle_time,simulation_step,p,d,u,x,y,measurements,measurements_nf,n_cycle);     
-                       
-           % update timers
-           cycle_time = cycle_time + simulation_step; 
-           process_time = process_time + simulation_step;
-           
-           % call online estimation routines
-           x_estim = estimator_online(process_time,cycle_time,...
-               p.stations_working,u,measurements,operating_vars,x_estim,...
-               n_cycle,control_mode,p.filtration_sampling_interval,...
-               p.control_interval,simulation_step);
-
-           % call online control routines and save MVs profiles
-           if ceil(cycle_time/p.control_interval)== cycle_time/p.control_interval         
-               [u,operating_vars] = controller_online(process_time,cycle_time,...
-               p.stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
-               n_cycle,control_mode);
+           if process_time < total_duration
+               % duration of the next simulation step
+               simulation_step = min(1, u.t_cycle - cycle_time); 
+               
+               % simulation
+               [x,y,measurements,measurements_nf]=carousel_simulator(cycle_time,simulation_step,p,d,u,x,y,measurements,measurements_nf,n_cycle);     
+                           
+               % update timers
+               cycle_time = cycle_time + simulation_step; 
+               process_time = process_time + simulation_step;
+               
+               % call online estimation routines
+               x_estim = estimator_online(process_time,cycle_time,...
+                   p.stations_working,u,measurements,operating_vars,x_estim,...
+                   n_cycle,control_mode,p.filtration_sampling_interval,...
+                   p.control_interval,simulation_step);
+    
+               % call online control routines and save MVs profiles
+               if ceil(cycle_time/p.control_interval)== cycle_time/p.control_interval         
+                   [u,operating_vars] = controller_online(process_time,cycle_time,...
+                   p.stations_working,u,u_nominal,cryst_output_nominal,measurements,operating_vars,x_estim,...
+                   n_cycle,control_mode);
+               end
+           else
+               process_time = process_time+1;
            end
 
            
@@ -173,7 +176,7 @@ function simulation_output = run_simulation(u,...
     end
     
     %% Prepare output object
-    if cycle_time==1
+    if cycle_time<=1
         operating_vars.n_cycle_vector(end)=[];
         operating_vars.V_slurry_vector(end)=[];
         cryst_output.conc_slurry_vector(end)=[];
