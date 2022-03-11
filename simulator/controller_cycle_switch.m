@@ -17,9 +17,16 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                   
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       or updated later. Same fields of u
-    % cryst_output_nominal = object containing nominal (i.e., initial) feed
-    %                        conditions. Fields
-    %                       - cryst_output_nominal
+    % cryst_output_nominal  = object containing nominal feed
+    %                        conditions. Fields:
+    %                        - cryst_output_nominal.conc_slurry= nominal
+    %                                 slurry concentration in feed (kg/m3)
+    %                        - cryst_output_nominal.x = Crystal size
+    %                                 distribution – particles diameters (m)
+    %                        - cryst_output_nominal.CSD - Volumetric crystal size distribution – percentage
+    %                        - cryst_output_nominal.CSD_perc - Volumetric crystal size distribution – percentage
+    %                        - cryst_output_nominal.T - slurry temperature (= room temperature) (K)  
+    % 
     % measurements      =   object of process measurements since process onset 
     %                       with the sampling interval that has been set in run_carousel.m
     %                       Fields of measurements:

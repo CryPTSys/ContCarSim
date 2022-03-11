@@ -182,7 +182,7 @@ function simulation_output = run_simulation(u,...
         cryst_output.conc_slurry_vector(end)=[];
     else
         if cycle_time < u.t_cycle 
-            warning('Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_cycle_vector(end+1)=cycle_time;
+            disp('Note: Final cycle not finished: outputs related to final cycle not included in simulation_output.m') %operating_vars.t_cycle_vector(end+1)=cycle_time;
         end
     end
 

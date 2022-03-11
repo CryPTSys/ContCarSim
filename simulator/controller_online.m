@@ -17,7 +17,7 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     %                       - u.Tinlet_drying=drying gas temperature Station 5 set-point (K)                       
     % u_nominal         =   nominal value of manipulated variables, as set in run_carousel.m
     %                       Same fields of u
-    % cryst_output_nominal  = object containing nominal (i.e., initial) feed
+    % cryst_output_nominal  = object containing nominal feed
     %                        conditions. Fields:
     %                        - cryst_output_nominal.conc_slurry= nominal
     %                                 slurry concentration in feed (kg/m3)

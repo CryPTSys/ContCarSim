@@ -13,13 +13,13 @@ function p = carousel_parameters(p)
     p.latent_heat = 846*1e3;                  % pure ethanol latent heat of vaporization [J/kg]
 
     % Antoine equation coefficients (Perry's) - the eq is coded inside the drying model
-    % Psat = exp(A1+A2/T+A3*log(T)+A4*T^A5;   
+    %   Psat = exp(A1+A2/T+A3*log(T)+A4*T^A5;   
     p.coeff_antoine = [74.475, -7164.3,-7.327, 3.1340e-6, 2];
     p.surf_t = 22.39e-3;             % Surface tension [N/m] - EtOH (approximate)
     
     %% Carousel parameters
     p.station_diameter = 0.0152;       % Filter diameter [m]
-    p.Rm = [3e9 3e9 3e9 3e9]';         % Filter medium resistance [m^-1];
+%     p.Rm = [3e9 3e9 3e9 3e9]';         % Filter medium resistance [m^-1];
                 
     %% Gas phase physical properties 
     % assumed same as pure air
@@ -36,7 +36,9 @@ function p = carousel_parameters(p)
     p.lambda = 5;                    % pore size index for deliquoring model [-]
     p.cp_s = 2267;                   % Drying - PCM solid specific heat [J/(kg K)] - regressed   
     p.a_V = 126000;                  % Specific surface area [m2/m3] - measured with master sizer
-
+    p.E=0.35;                        % Nominal cake porosity [-]
+    p.alpha=2.7e9;                   % Nominal specific cake resistance [m/kg]
+    
     %% Kinetics
     p.wl_crit = 0.05;                % Drying - critical impurity content [kgi/kg_cake]
     p.wl_eq = 0.0005;                % Drying - equilibrium impurity content [kgi/kg_cake] 

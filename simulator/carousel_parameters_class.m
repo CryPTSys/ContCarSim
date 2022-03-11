@@ -29,6 +29,7 @@ classdef carousel_parameters_class
         surf_t
         lambda
         A
+        alpha
         E
         a_V
         k_air
@@ -45,11 +46,11 @@ classdef carousel_parameters_class
             output=10.^(obj.visc_liq_coeff(:,1)+obj.visc_liq_coeff(:,2)/T+...
                 obj.visc_liq_coeff(:,3)*T+obj.visc_liq_coeff(:,4)*T^2)*1e-3;  
         end            
-        function output=N_cap_CSD(obj,x,rho_liq,E,dP,L_cake) % capillary number - Tarleton and Wakeman, 2007
-            output=(E^3*(x).^2*(rho_liq*9.81.*L_cake+dP))/((1-E)^2*L_cake.*obj.surf_t);
+        function output=N_cap_CSD(obj,x,rho_liq,poros,dP,L_cake) % capillary number - Tarleton and Wakeman, 2007
+            output=(poros^3*(x).^2*(rho_liq*9.81.*L_cake+dP))/((1-poros)^2*L_cake.*obj.surf_t);
         end
-        function output=pb_CSD(obj,x,E) % threshold pressure - Tarleton and Wakeman, 2007
-            output=4.6*(1-E)*obj.surf_t./(E*x);
+        function output=pb_CSD(obj,x,poros) % threshold pressure - Tarleton and Wakeman, 2007
+            output=4.6*(1-poros)*obj.surf_t./(poros*x);
         end
     end
 end

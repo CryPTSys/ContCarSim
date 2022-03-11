@@ -1,7 +1,7 @@
 function [x,y,measurements,measurements_nf,operating_vars]=switch_cycle(t,cryst_output,p,d,u,...
                 x,y,measurements,measurements_nf,operating_vars,n_cycle)
         % This function handles the routines to be called at the end of each cycle:
-        % -     the first time that some material enters a processing position (1-4), the
+        % -     the first time that some material enters a processing station (1-4), the
         %       measurement vectors for that position is created
         % -     the states in each position are transferred to the
         %       following one, e.g.: x.pos3 = x.pos2
@@ -121,10 +121,10 @@ function [x,y,measurements,measurements_nf,operating_vars]=switch_cycle(t,cryst_
             x.pos1.filtration_finished=0;
             
             % cake and liquid properties from slurry fed at current process time
-            x.pos1.E=0.35.*d.E_dist;    %            
-            x.pos1.alpha=2.7e9.*d.alpha_dist;   % 
+            x.pos1.E=p.E.*d.E_dist;    %            
+            x.pos1.alpha=p.alpha.*d.alpha_dist;   % 
             x.pos1.k=1/(x.pos1.alpha*p.rho_sol*(1-x.pos1.E));    
-            x.pos1.a_V=126000;  % 1/m
+            x.pos1.a_V=p.a_V;  % 1/m
 
             x.pos1.visc_liq=p.visc_liq_components(x.pos1.T);                        
             x.pos1.V_slurry_initial=u.V_slurry*d.V_slurry_dist*p.stations_working(1);        % Slurry volume fed at the beginning of the filtration batch [m^3]
