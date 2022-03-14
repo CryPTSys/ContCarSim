@@ -15,7 +15,7 @@ function [x,y] = model_deliquoring(batch_time,Dt,p,u,x,y,n_batch,pos)
     
     %% update equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
-    x.(['pos' num2str(pos)]).S_inf=0.085;
+    x.(['pos' num2str(pos)]).S_inf=0.085; % experimental, fixed
     
     %% Deliquoring model calculation - solution obtained through design charts
     % Initial conditions (creation of local objects with shorter names for conciseness)    

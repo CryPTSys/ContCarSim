@@ -15,7 +15,10 @@ total_duration = 1800; % s
 %% set nominal operating variables   
 u_nominal.t_cycle=30;           % nominal set-point of cycle duration (s) 
                               % u_nominal.t_cycle and u.t_cycle MUST ALWAYS BE INTEGERS
-u_nominal.V_slurry=3e-6;      % nominal set-point of fed slurry volume (m3) 
+u_nominal.V_slurry=11e-6;     % nominal set-point of fed slurry volume (m3) 
+                                  % Note: can't be larger than 10e-6; to process
+                                  % larger slurry volumes, comment lines 15-17
+                                  % of run_simulation.m
 u_nominal.P_compr=10e4;            % nominal set-point of gauge pressure compressor (Pa)
 u_nominal.Tinlet_drying=50+273.15;      % nominal set-point of drying gas temperature (K) 
 

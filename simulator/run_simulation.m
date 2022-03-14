@@ -12,6 +12,9 @@ function simulation_output = run_simulation(u,...
     if abs(round(u.t_cycle)-u.t_cycle)>0
         error('Cycle duration must be an integer')
     end
+    if u.V_slurry>10e-6
+        error('Loaded slurry volume exceeds maximum capacity')
+    end
 
 %% Initialization           
     % initialize crystallization feed

@@ -11,7 +11,7 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
 
     %% update deliq. equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
-    x.(['pos' num2str(pos)]).S_inf=0.085;
+    x.(['pos' num2str(pos)]).S_inf=0.085; % experimental, fixed
     
     %% Initial conditions (creation of local objects with shorter names for conciseness)
     t=batch_time;

@@ -19,11 +19,9 @@ function p = carousel_parameters(p)
     
     %% Carousel parameters
     p.station_diameter = 0.0152;       % Filter diameter [m]
-%     p.Rm = [3e9 3e9 3e9 3e9]';         % Filter medium resistance [m^-1];
                 
     %% Gas phase physical properties 
     % assumed same as pure air
-    p.k_air = 0.028;                     % air conductivity [W/(m K)]
     p.MW_air = 28.97e-3;                 % air molecular weight [kg/mol]
     cp_air = [29e-3, 0.2199e-5, 0.5723e-8, -2.871e-12]/p.MW_air*1e3; % nitrogen specific heat [J/(kg K)] 
     cp_EtOH= [61.34e-3, 15.72e-5, 8.749e-8, 19.83e-12]/p.MW_components*1e3;

@@ -14,7 +14,7 @@ function [x,y] = model_deliquoring_grad(batch_time,Dt,p,u,x,y,n_batch,pos)
 
     %% update equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
-    x.(['pos' num2str(pos)]).S_inf=0.085;
+    x.(['pos' num2str(pos)]).S_inf=0.085; % experimental, fixed
 
     %% if cake is small, use design charts for simulating deliquoring
     if x.(['pos' num2str(pos)]).L_cake <p.min_length_discr

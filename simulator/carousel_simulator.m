@@ -46,9 +46,7 @@ function [x,y,measurements, measurements_nf]=carousel_simulator(cycle_time,simul
             y.pos1.(['batch_' num2str(n_cycle)]).t=[y.pos1.(['batch_' num2str(n_cycle)]).t cycle_time:p.filtration_sampling_interval:cycle_time+simulation_step];
             y.pos1.(['batch_' num2str(n_cycle)]).m_filt=[y.pos1.(['batch_' num2str(n_cycle)]).m_filt zeros(1, length(cycle_time:p.filtration_sampling_interval:cycle_time+simulation_step))];
             
-        end
-                
-            
+        end    
         
         % filtrate volume sensor WI101 - add filtrate volume from Station 1
         sampling_intervals1_4=y.pos1.(['batch_' num2str(n_cycle)]).t((end+1-p.integration_interval/p.filtration_sampling_interval):end);
