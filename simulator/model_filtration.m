@@ -3,9 +3,10 @@ function [x,y]=model_filtration(~,Dt,p,u,x,y,n_batch,pos)
     %   batch_time - unused
     %   Dt = duration of filtration step
     %   p = properties object
+    %   u = operating variables set-points object
     %   x = states (+additional properties) object
     %   y = measurements vector
-    %   n_cycle = cycle number
+    %   n_batch = number of slurry batch being processed
     %   pos = station in which filtration is occurring 
          
     %% Simulation   

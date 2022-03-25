@@ -6,10 +6,10 @@ function [x,y] = model_deliquoring_grad(batch_time,Dt,p,u,x,y,n_batch,pos)
     %   batch_time = cycle timer
     %   Dt = duration of deliquoring step
     %   p = properties object
-    %   u = inputs vector
+    %   u = operating variables set-points vector
     %   x = states (+additional properties) object
     %   y = measurements vector
-    %   n_cycle = cycle number
+    %   n_batch = number of slurry batch being processed
     %   pos = station in which filtration is occurring   
 
     %% update equilibrium saturation to current pressure drop

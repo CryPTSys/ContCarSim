@@ -9,7 +9,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     % stations_working     =   vector [1x4] - for i=1:4:
     %                       - stations_working(i)=1 if station i was processing material during cycle that just finished ;
     %                       - stations_working(i)=0 if station i was empty during cycle that just finished; 
-    % u                 =   vector of manipulated variables during previous control interval
+    % u                 =   vector of set-points of operating variables during previous control interval
     %                       Fields of u:
     %                       - u.t_cycle=cycle duration set-point (s)    MUST BE AN INTEGER
     %                       - u.V_slurry=fed slurry volume set-point (m3)

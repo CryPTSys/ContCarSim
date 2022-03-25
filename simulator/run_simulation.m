@@ -1,5 +1,5 @@
 function simulation_output = run_simulation(u,...
-    cryst_output,disturbance_mode,control_mode,total_duration,...
+    cryst_output,disturbance_scenario,control_mode,total_duration,...
     control_interval,sampling_interval,inter_cycle_Dt,mesh_clean_Dt)     
 
 %% Check sampling and control times and cycle duration
@@ -161,7 +161,7 @@ function simulation_output = run_simulation(u,...
                operating_vars,x_estim,n_cycle,control_mode);
 
            % call disturbance function
-           [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_mode);
+           [cryst_output,d,p]=disturbances(process_time,cryst_output,cryst_output_nominal,p,d,u,n_cycle,disturbance_scenario);
 
            if process_time > 0
                if sum(p.stations_working == [1 0 0 0])==4
@@ -224,7 +224,7 @@ function simulation_output = run_simulation(u,...
         
         % include input setting in output object
         simulation_output.settings.control_mode=control_mode;
-        simulation_output.settings.disturbance_scenario=disturbance_mode;
+        simulation_output.settings.disturbance_scenario=disturbance_scenario;
         simulation_output.settings.control_interval=control_interval;
         simulation_output.settings.sampling_interval=sampling_interval;
         simulation_output.settings.total_duration=total_duration;

@@ -4,11 +4,16 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
     %   batch_time = cycle timer
     %   Dt = duration of deliquoring step
     %   p = properties object
+    %   u = operating variables set-points object
     %   x = states (+additional properties) object
     %   y = measurements vector
-    %   n_cycle = cycle number
+    %   n_batch = number of slurry batch being processed
     %   pos = station in which filtration is occurring               
-
+    
+    %% Assign current value of variability sources 6-7
+    d.hM_dist=d.hM(n_batch);
+    d.hT_dist=d.hT(n_batch);
+    
     %% update deliq. equilibrium saturation to current pressure drop
     rho_liq=p.rho_liq_components;
     x.(['pos' num2str(pos)]).S_inf=0.085; % experimental, fixed
@@ -112,8 +117,8 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
             % calculation of hT and mT coefficients
             cp_g=p.cp(Tin(i));
             rho_g=101325/8.314/(Tin(i))*0.02897;
-            p.h_M=ug0*rho_g/p.zeta/47.2e-6/p.a_V/1e5*d.hM(n_batch);
-            p.h_T=cp_g*rho_g*ug0/p.a_V/47.2e-6/p.zeta*d.hT(n_batch);
+            p.h_M=ug0*rho_g/p.zeta/47.2e-6/p.a_V/1e5*d.hM_dist;
+            p.h_T=cp_g*rho_g*ug0/p.a_V/47.2e-6/p.zeta*d.hT_dist;
             
             % the drying model used in this simulator was originally
             % developed for cakes with multiple volatile and non-volatile

@@ -24,7 +24,7 @@ u_nominal.Tinlet_drying=50+273.15;      % nominal set-point of drying gas temper
 
 %% set nominal feed properties
 cryst_output.conc_slurry=250;   % nominal slurry concentration (kg/m3) - 
-                                % actual slurry concentration subject to Gaussian disturbances (+ ramp if disturbance_flag==1)
+                                % actual slurry concentration subject to Gaussian disturbances (+ ramp if disturbance_scenario==1)
 
 %% set sampling interval and control time
 control_interval = 1; % time step at which controller_online.m is called (s)
