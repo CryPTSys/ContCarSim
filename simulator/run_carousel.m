@@ -15,7 +15,7 @@ total_duration = 1800; % s
 %% set nominal operating variables   
 u_nominal.t_cycle=30;           % nominal set-point of cycle duration (s) 
                               % u_nominal.t_cycle and u.t_cycle MUST ALWAYS BE INTEGERS
-u_nominal.V_slurry=11e-6;     % nominal set-point of fed slurry volume (m3) 
+u_nominal.V_slurry=3e-6;     % nominal set-point of fed slurry volume (m3) 
                                   % Note: can't be larger than 10e-6; to process
                                   % larger slurry volumes, comment lines 15-17
                                   % of run_simulation.m
