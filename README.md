@@ -1,8 +1,10 @@
 # carousel_simulator
-The simulator is contained in the "simulator" folder.
+The simulator is contained in the "simulator" folder. MEX files have been compiled for Windows machines. C sources are provided.
 
-Please refer to the following article for further information about the simulator: <br>
-Destro, F., Nagy, Z. K. and M. Barolo. A benchmark simulator for quality-by-design 
+Please refer to UserManual.pdf for instructions on how to use the simulator.
+
+How to cite: <br>
+Destro, F., Nagy, Z. K. and M. Barolo (2022). A benchmark simulator for quality-by-design 
 and quality-by-control studies in continuous pharmaceutical manufacturing ‒ Intensified
-filtration-drying of paracetamol/ethanol slurries. Submitted to: _Comput. Chem. Eng._ 
+filtration-drying of paracetamol/ethanol slurries. _Comput. Chem. Eng., In press._
 
