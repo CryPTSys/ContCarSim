@@ -1,5 +1,7 @@
 # carousel_simulator
-The simulator is contained in the "simulator" folder. MEX files have been compiled for Windows machines. C sources are provided for users of other operating systems.
+The simulator is contained in the "simulator" folder. 
+
+The MEX files contained in the simulator have been compiled for Windows machines. For users of other operating systems, the C sources of the MEX files are provided in the "simulator" folder.
 
 Please refer to UserManual.pdf for instructions on how to use the simulator.
 
