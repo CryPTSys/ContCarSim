@@ -10,3 +10,5 @@ Destro, F., Nagy, Z. K. and M. Barolo (2022). A benchmark simulator for quality-
 and quality-by-control studies in continuous pharmaceutical manufacturing ‒ Intensified
 filtration-drying of paracetamol/ethanol slurries. _Comput. Chem. Eng._, **163**, 107809.
 
+![image](https://user-images.githubusercontent.com/62111706/169542789-a27f34d4-0a52-4cd1-b971-e7a98ea917fe.png)
+
