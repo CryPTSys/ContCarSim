@@ -19,4 +19,6 @@ No toolbox is needed for running the basic simulator, contained in the "simulato
 <br>
 <br>
 
+![image](https://user-images.githubusercontent.com/62111706/201365817-fa66d7fc-ab7a-44b7-abcd-016379882632.png)
+
 [![Watch the video](https://img.youtube.com/vi/e3MtWVvHJes/hqdefault.jpg)](https://youtu.be/e3MtWVvHJes)
