@@ -1,7 +1,7 @@
 # Installation and User Manual
 The simulator is contained in the "simulator" folder of the repository. Default MEX files have been compiled for Windows machines. MEX files for macOS users are in the MACOS subfolder. The C sources of the MEX files are provided in the "simulator" folder.
 
-Please refer to UserManual.pdf for instructions on how to use the simulator and for sample case studies
+Please refer to UserManual.pdf for instructions on how to use the simulator and for sample case studies.
 
 ![image](https://user-images.githubusercontent.com/62111706/201365817-fa66d7fc-ab7a-44b7-abcd-016379882632.png)
 
