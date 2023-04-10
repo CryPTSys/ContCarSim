@@ -83,13 +83,14 @@ function [u,operating_vars] = controller_online(process_time,cycle_time,...
     elseif control_mode == 0 || stations_working(4)==0 % open-loop - or if Station 4 is empty
         u.t_cycle=u_nominal.t_cycle;
     end   
-   %% do not modify part below
-   % Store manipulated variables profile
-   operating_vars.t_vector=[operating_vars.t_vector process_time];     
-   operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr];
-   operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying];
+
+    %% do not modify part below
+    % Store manipulated variables profile
+    operating_vars.t_vector=[operating_vars.t_vector process_time];     
+    operating_vars.P_compr_vector=[operating_vars.P_compr_vector u.P_compr];
+    operating_vars.Tin_drying_vector=[operating_vars.Tin_drying_vector u.Tinlet_drying];
    
-   if abs(round(u.t_cycle)-u.t_cycle)>0
-       error('u.t_cycle must be an integer!')
-   end
+    if abs(round(u.t_cycle)-u.t_cycle)>0
+        error('u.t_cycle must be an integer!')
+    end
 end
