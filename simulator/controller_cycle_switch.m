@@ -75,7 +75,7 @@ function [u,u_nominal,operating_vars] = controller_cycle_switch(process_time,cyc
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         
     
     %% Paper simulator
-    % note that u.t_cycle must always be an integer
+    % remember that u.t_cycle must always be an integer
     u.V_slurry=u_nominal.V_slurry;  % set up control law
 
     %% do not modify part below
