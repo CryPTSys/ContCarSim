@@ -2,13 +2,13 @@ function [x,y] = model_drying(batch_time,Dt,p,d,u,x,y,n_batch,pos)
     %% differential drying model    
     %  Inputs list
     %   batch_time = cycle timer
-    %   Dt = duration of deliquoring step
+    %   Dt = duration of drying step
     %   p = properties object
     %   u = operating variables set-points object
     %   x = states (+additional properties) object
     %   y = measurements vector
     %   n_batch = number of slurry batch being processed
-    %   pos = station in which filtration is occurring               
+    %   pos = station in which drying is occurring               
     
     %% Assign current value of variability sources 6-7
     d.hM_dist=d.hM(n_batch);
