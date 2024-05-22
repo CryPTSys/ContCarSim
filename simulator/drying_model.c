@@ -135,7 +135,7 @@ void drying_pde_model(double* t, double x[], int number_nodes,
                                   a3*pow(wi_cake,2)+a4*pow(wi_cake,1)+
                                   a5);
                                 }
-                             else if (wi_cake<0.11) {
+                             else if (wi_cake<wl_crit[i]) {
                                  f=(b1*wi_cake+b2);
                                 }
                              f=MIN(f,1);

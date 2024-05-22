@@ -38,7 +38,7 @@ function p = carousel_parameters(p)
     p.alpha=2.7e9;                   % Nominal specific cake resistance [m/kg]
     
     %% Kinetics
-    p.wl_crit = 0.05;                % Drying - critical impurity content [kgi/kg_cake]
+    p.wl_crit = 0.11;                % Drying - critical impurity content [kgi/kg_cake]
     p.wl_eq = 0.0005;                % Drying - equilibrium impurity content [kgi/kg_cake] 
     p.zeta=199.78;                   % channeling parameter - regressed
 
